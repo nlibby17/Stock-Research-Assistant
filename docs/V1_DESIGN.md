@@ -202,7 +202,14 @@ runs remain readable as `legacy_limited` evidence and are never silently backfil
 ## Roadmap
 
 The authoritative implementation order and acceptance gates are maintained in
-[`ROADMAP.md`](ROADMAP.md). The high-level stages are:
+[`ROADMAP.md`](ROADMAP.md). Its approved 2026-09-05 active delivery plan supersedes
+the original broad sequence. Mandatory structural refactoring ended after S3.2.
+The active sequence is bounded SEC discrepancy review and a promotion decision,
+current two-stock/company views, weekly universe proposals, then selected historical
+features as needed. The broader stages below are a scope reference, not prerequisites
+for those current views; attribution, outcome tracking, and backtesting are deferred.
+
+The high-level stages are:
 
 1. **V1 foundation — complete:** provider/cache, normalized schema, metrics,
    versioned scores, CLI, report, dashboard, research import, and tests.
@@ -309,9 +316,11 @@ still reads Yahoo summary fundamentals exactly as before.
 ### Step 2.4B status: shadow comparison in progress
 
 The immutable comparison infrastructure, configurable tolerance matrix, CLI status,
-and dashboard breakdowns are implemented. The first successful 50-stock run is
-stored; two additional qualified full-universe runs on distinct market-data dates are required
-before Step 2.4B can be considered complete. Comparisons are classified by metric,
+and dashboard breakdowns are implemented. Earlier three-date evidence predates the
+strengthened formula-contract gate and does not qualify under schema version 11.
+Read the installation's current counter rather than assuming a fixed number of
+remaining dates. Required evidence and discrepancy review precede any promotion;
+promotion may be limited to metrics with demonstrated benefit. Comparisons are classified by metric,
 company, and sector as comparable, approximately comparable, materially different,
 stale, missing, or structurally incomparable. None are ranking inputs.
 
@@ -322,10 +331,15 @@ the default eligibility policy. Local validation enforces schema, sectors, weigh
 identifiers, and optional live price/SEC identity coverage, but full listing,
 security-type, liquidity, and corporate-action enforcement remains Step 2.5 work.
 This avoids pretending an unofficial quote endpoint is an authoritative security
-master. Once the SEC/provider layer is stronger, a
-monthly-capable proposal workflow may join active exchange listings to SEC
+master. The planned bounded proposal workflow runs weekly when due during the
+user-started `morning` command and may join active exchange listings to SEC
 ticker/CIK data, apply security-type, history, liquidity, coverage,
 corporate-action, delisting, and sector-balance checks, then write a dated proposed
 universe with evidence for review. It never activates a proposal automatically.
 User-approved changes apply prospectively, and historical runs always retain their
 original member list and universe version.
+
+The initial workflow declares a supported security scope and flags or excludes
+unresolved identities and unsupported corporate actions. Broader foreign-filing
+normalization and comprehensive historical listing infrastructure are deferred.
+Discovery records its last successful run and requires no background scheduler.

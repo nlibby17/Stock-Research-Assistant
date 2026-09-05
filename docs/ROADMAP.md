@@ -9,6 +9,55 @@ reliability, maintainability, useful analysis, and then convenience. No step may
 connect to a brokerage or execute a trade. Paid services, public deployment,
 background automation, or OpenAI API integration require separate user approval.
 
+## Active delivery plan — approved 2026-09-05
+
+This revision supersedes the older mandatory sequencing below. Numbered sections
+remain a scope reference, not a requirement to complete every feature. The mandatory
+structural refactoring campaign ends after accepted S3.2 (`81c5dc0`). Future
+refactoring must address a demonstrated problem or support the next approved feature.
+The new dispositions in `REFACTORING_REVIEW.md` replace its remaining campaign gates.
+
+Deliver in this order:
+
+1. **Bounded SEC discrepancy review (2.4B), then a promotion decision (2.4C).**
+   Inspect current local evidence without assuming the old three-date count still
+   qualifies. Explain systematic differences by definition, period, coverage, and
+   lineage. Recommend a small per-metric set only where SEC inputs offer a demonstrated
+   benefit. Keeping Yahoo for a metric, or deciding against promotion, is a valid
+   outcome. Required evidence and explicit approval still precede any scored-data or
+   model change. Review inconsistent SEC selection only where this work needs it;
+   no broad S3.3 extraction is a prerequisite.
+2. **Two-stock comparison and useful company details (reduced 3.5).** Compare two
+   current eligible top candidates using stored scores, components, coverage, metrics,
+   source dates, and research. Build company details from existing stored evidence.
+   Reuse current score breakdowns; add tested calculation helpers only for actual
+   gaps. Historical attribution and outcome tracking are not prerequisites.
+3. **Weekly universe proposals (bounded 2.5).** When due during a user-started
+   `morning` workflow, discover candidates within a documented supported security
+   scope and produce dated additions/removals with reasons and warnings. Record the
+   last successful discovery so daily runs do not repeat the weekly work. No separate
+   background scheduler is required. Replacements require user approval and apply
+   prospectively; rejecting a proposal leaves the active universe unchanged.
+4. **Selective historical features.** First audit existing evidence for actual gaps
+   (reduced 3.1), then offer comparison with a selected compatible older run (reduced
+   3.2) when useful. General event attribution (3.3) and outcome tracking (3.4) are
+   deferred. If outcome tracking is later selected, start with one horizon and one
+   benchmark, retaining honest incomplete/unavailable states.
+
+Backtesting (all of Step 4), broad foreign-filing support, sophisticated outcome
+statistics, scheduling, paid providers, and deployment are outside the active plan.
+They require a future decision based on need and available data. Practical
+backup/restore and setup reliability (5.1) remain eligible small improvements for
+identified gaps, not a new infrastructure campaign.
+
+Keep calculation tests, freshness and provenance protections, migration backups,
+safe cleanup, private-file exclusions, and explicit model/universe activation gates.
+Use focused tests for affected behavior and the existing full suite/CI at checkpoints;
+manual Windows/macOS checks are driven by workflow or compatibility changes. Avoid
+repeated architecture reviews and cosmetic extractions as release prerequisites.
+This plan approval does not authorize a model cutover, universe activation, paid
+service, deployment, or blanket implementation/commit of every future feature.
+
 ### Evidence-proportional implementation guardrail
 
 As of 2026-09-02, the application's stored history is still small: roughly tens of
@@ -276,7 +325,7 @@ tested before any alternative momentum definition is promoted.
 **Reasoning recommendation: high.** Listing identity, corporate actions, security
 type, and survivorship directly affect both daily rankings and future backtests.
 
-Build a monthly-capable universe-maintenance foundation that joins current listing
+Build a bounded weekly, due-based proposal workflow during `morning` that joins current listing
 information to SEC ticker/CIK identities and applies documented checks for security
 type, exchange, listing status, price/liquidity history, fundamental coverage,
 corporate actions, delistings, and sector balance.
@@ -297,7 +346,12 @@ whose reporting does not fit the current 10-K/10-Q contract. Support for 20-F, 6
 not merely add form names to the allowlist or imply comparability with domestic
 quarterly reporting.
 
-## Step 3 — Historical intelligence and change attribution
+For the initial proposal workflow, declare a supported security scope and flag or
+exclude unsupported cases. Broad foreign-filing normalization and comprehensive
+historical listing infrastructure are deferred, rather than prerequisites to
+proposals for supported securities.
+
+## Step 3 — Historical features (selective scope; see active delivery plan)
 
 Step 3 turns immutable daily runs into an auditable history, useful comparisons,
 evidence-based explanations, and prospective outcome tracking. It is independently
@@ -335,7 +389,7 @@ contributions suitable for a later “Why is this ranked here?” view. Contribu
 display must distinguish a raw metric, its peer-relative percentile, configured
 weight, effective weight after missingness, and resulting score contribution.
 
-### 3.3 Rule-based change attribution
+### 3.3 Rule-based change attribution — deferred
 
 Attribution is split because detecting an observable event and claiming that it
 contributed to a score change are separate analytical problems.
@@ -362,7 +416,7 @@ ambiguous changes rather than inventing an explanation.
 Acceptance for 3.3 requires evidence-linked explanations, explicit ambiguity, and
 tests proving that unsupported causal language is not generated.
 
-### 3.4 Prospective outcome tracking
+### 3.4 Prospective outcome tracking — deferred
 
 Prospective tracking evaluates recommendations saved before outcomes were known; it
 is useful even when optional historical backtesting is never pursued.
@@ -413,8 +467,8 @@ important metrics, source/as-of context, and research evidence side by side. It 
 not invent a separate winner or perform calculations in the dashboard. Expansion to
 three to five selections is optional only if the two-stock presentation remains
 clear. These are presentation layers over tested calculations, not new scoring
-factors, and the VS feature is designed and implemented during Step 3.5—not before
-the underlying Step 3 data contracts it consumes are complete.
+factors. The initial VS feature uses existing current-run contracts; only the specific
+missing inputs it consumes are prerequisites, not completion of all Step 3 work.
 
 Acceptance requires readable views backed by the tested Step 3 calculation layer,
 with clear limited-data and not-yet-mature states.

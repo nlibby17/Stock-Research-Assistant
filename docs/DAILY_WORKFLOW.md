@@ -113,6 +113,11 @@ recorded and are not reconstructed after the fact.
 
 ## Optional current-source research phase
 
+Planned universe discovery is separate from today's implemented workflow: once
+delivered, it will run weekly when due during `morning` and generate dated proposals.
+It will not activate additions or replacements without user approval. See the active
+delivery plan in `ROADMAP.md`; no background scheduling is implied.
+
 The deterministic phase writes `runtime/reports/research_template.json`. A person
 or AI research agent may complete it using current sources, then run:
 

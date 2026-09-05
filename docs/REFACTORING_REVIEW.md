@@ -4,6 +4,43 @@ This document is the authoritative record for the pre-Step-3 code-structure revi
 It is intentionally separate from the product roadmap: refactoring must preserve
 application behavior and does not advance or redefine a product-roadmap step.
 
+## Campaign closeout and revised scope — approved 2026-09-05
+
+The user approved ending mandatory structural refactoring after S3.2 (`81c5dc0`)
+and returning to the shorter delivery sequence in `ROADMAP.md`. Completed work
+remains accepted. The review findings and original program below are retained as
+history; the following dispositions supersede their remaining mandatory sequence,
+acceptance dependencies, and gates G3–G5.
+
+| Remaining item | New disposition |
+|---|---|
+| S3.3 SEC entity and effective-selection policy | Narrow to checking inconsistencies relevant to the SEC discrepancy review or next feature; extract only where evidence warrants it |
+| S3.4 customization proposal builder | Deferred until a concrete customization change needs it |
+| S3.5 dashboard transforms | Conditional on the actual transforms needed for upcoming views |
+| S4.1–S4.6 provider/capability and operation extractions | All six deferred; no prerequisite to product delivery |
+| S5.1 SEC persistence aggregate | Deferred until a demonstrated maintenance problem warrants it |
+| S5.2 dashboard read models | Deferred; retain existing provenance protections |
+| S5.3 dashboard section functions | Conditional on upcoming dashboard work; keep it local and small |
+| S5.4 campaign audit | Replaced by this documentation closeout and relevant feature-checkpoint verification |
+
+Large-file size and hypothetical external consumers do not independently justify
+extractions or compatibility facades. Maintain actual launcher/command consumers
+and real stored data. Keep tests for calculation correctness, provenance, migrations,
+cleanup, and relevant failure cases. Existing full tests and CI remain checkpoint
+checks; manual platform verification is required when affected behavior warrants it,
+not merely to satisfy a canceled module-movement sequence.
+
+Closeout evidence: the working tree was clean at `81c5dc0` before this documentation
+revision. The S3.2 entry records 313 passing Windows tests and four skips; no new
+test run, CI result, runtime migration, or live workflow is claimed by this closeout.
+The user also reported successful launcher use on their Mac. Historical checkpoint
+entries retain their original evidence and are not retroactively rewritten.
+
+The next task is a bounded product Step 2.4B discrepancy review and a per-metric
+promotion recommendation. A production model change still requires evidence and
+explicit approval. Weekly due-based universe discovery during `morning` remains
+planned, with all replacements proposed for approval before prospective activation.
+
 ## Objective
 
 Collect independent recommendations across the application's largest subsystems,
