@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 import shutil
 import sys
@@ -9,6 +10,7 @@ import time
 from contextlib import contextmanager
 
 MESSAGE = "thank you goodbye"
+TEXTURE_TILES = ("MW88##%%@@##88WM", "[]{}<>024680<>{}", "NX7+=::=+7XN##%%")
 
 
 def horizon_frame(columns: int, rows: int, phase: float) -> list[str]:
@@ -21,34 +23,21 @@ def horizon_frame(columns: int, rows: int, phase: float) -> list[str]:
         if y == horizon:
             line = "-" * width
         else:
-            # A fixed perspective mesh slides laterally in opposite directions.
-            # Nearer rows travel faster, giving the two planes parallax depth.
-            depth = height / (distance + 1)
-            cross = depth % 1 < 0.22
-            shift = int(phase * (4 + distance * 0.6))
+            # Project moving texture through the exact center without fixed rails.
+            center = (width - 1) / 2
+            depth = height * 2 / distance
+            band = int(depth)
             direction = 1 if y < horizon else -1
-            spacing = max(4.0, (distance + 1) * 0.85)
             chars = []
             for x in range(width):
-                position = x + direction * shift
-                lateral = (position - width / 2) / spacing
-                ray = abs(lateral - round(lateral)) * spacing < 0.6
-                detail = (position + distance * 2) % max(3, int(spacing))
-                chars.append(
-                    "+"
-                    if cross and ray
-                    else "-"
-                    if cross
-                    else "/"
-                    if ray and y > horizon
-                    else "\\"
-                    if ray
-                    else ":"
-                    if detail == 0
-                    else "."
-                    if detail == 2
-                    else " "
-                )
+                lateral = (x - center) / distance
+                # Groups of glyphs grow toward the viewer and shrink to the
+                # horizon. A narrow gap between blocks keeps the density legible.
+                texel = math.floor((lateral - direction * phase * 1.5) * 4)
+                block, cell = divmod(texel, 18)
+                tile = TEXTURE_TILES[(block + band) % len(TEXTURE_TILES)]
+                glyph = tile[(cell + band * 3) % len(tile)] if cell < 16 else " "
+                chars.append(glyph)
             line = "".join(chars)
         lines.append(line)
     text = (" " + MESSAGE + " ") if width >= len(MESSAGE) + 2 else MESSAGE[:width]

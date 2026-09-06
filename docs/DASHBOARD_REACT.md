@@ -91,6 +91,14 @@ CI verifies views and checks that rebuilding produces no bundle changes.
 
 ## Terminal farewell
 
+Animation revision approved for commit/push, 2026-09-06: dense projected clusters of letters, numbers,
+and symbols move right on the upper plane and left on the lower plane. Texture
+projects through the horizontal center of the message line without static rails
+or crossbars, and moves 50% faster than the initial dense revision.
+The center line and exit controls are preserved. Focused tests cover density,
+absence of static rails, reversed movement,
+resizing, and exit behavior.
+
 The upper/lower perspective-plane algorithm is independently authored, with no copied code,
 frames or artwork from the referenced animation. `thank you goodbye` is stationary
 at the horizon. A cobalt-blue to icy-white gradient colors both halves. Dimensions are read every frame, reserving rows for
