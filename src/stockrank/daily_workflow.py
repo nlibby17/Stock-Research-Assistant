@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import os
+import shutil
 import socket
 import subprocess
 import sys
@@ -10,7 +12,7 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Protocol
 
-from stockrank.farewell import horizon_frame, show_farewell
+from stockrank.farewell import horizon_frame, show_farewell, terminal_keys
 
 
 class RuntimeSettings(Protocol):
@@ -38,6 +40,75 @@ WELCOME_ART = r"""
 """.strip("\n")
 
 GOODBYE_ART = "\n".join(horizon_frame(62, 11, 0))
+
+WELCOME_GREEN = "\x1b[38;2;34;197;94m"
+WELCOME_STEP_SECONDS = 0.5
+WELCOME_LINE_START = 6
+WELCOME_LINE_END = 26
+
+
+def welcome_frame(step: int) -> str:
+    """Reveal one column of the existing line each step; leave labels and axes alone."""
+    visible = step % (WELCOME_LINE_END - WELCOME_LINE_START + 1)
+    lines = []
+    for row, line in enumerate(WELCOME_ART.splitlines()):
+        if row < 4:
+            graph = line[WELCOME_LINE_START:WELCOME_LINE_END]
+            graph = graph[:visible] + " " * (len(graph) - visible)
+            line = (
+                line[:WELCOME_LINE_START]
+                + WELCOME_GREEN
+                + graph
+                + "\x1b[0m"
+                + line[WELCOME_LINE_END:]
+            )
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def wait_with_welcome(process: DashboardProcess) -> int:
+    """Loop the welcome graph while waiting; redirected and small terminals stay static."""
+    dimensions = shutil.get_terminal_size()
+    interactive = (
+        sys.stdin.isatty()
+        and sys.stdout.isatty()
+        and not os.environ.get("CI")
+        and os.environ.get("TERM") != "dumb"
+        and dimensions.columns >= 65
+        and dimensions.lines >= 8
+    )
+    if not interactive:
+        print(WELCOME_ART)
+        return process.wait()
+    try:
+        with terminal_keys():
+            return animate_welcome(process)
+    except (OSError, ValueError):
+        print(WELCOME_ART)
+        return process.wait()
+
+
+def animate_welcome(process: DashboardProcess, *, output=None) -> int:
+    """Keep a fixed five-line welcome block, advancing every half second."""
+    output = output or sys.stdout
+    step = 0
+    output.write(welcome_frame(step) + "\n")
+    output.flush()
+    try:
+        while True:
+            try:
+                return process.wait(timeout=WELCOME_STEP_SECONDS)
+            except subprocess.TimeoutExpired:
+                dimensions = shutil.get_terminal_size()
+                if dimensions.columns < 65 or dimensions.lines < 8:
+                    # Stop repainting when wrapping would overwrite terminal history.
+                    return process.wait()
+                step += 1
+                output.write("\x1b[5A\r" + welcome_frame(step) + "\n")
+                output.flush()
+    finally:
+        output.write("\x1b[0m")
+        output.flush()
 
 
 def print_goodbye() -> None:
@@ -147,7 +218,6 @@ def launch_dashboard(
     dashboard_url = f"http://localhost:{server_port}"
     border = "=" * 62
     print(f"\n{border}")
-    print(WELCOME_ART)
     print()
     print("  DASHBOARD IS RUNNING")
     print("  Opening it in your default browser...")
@@ -179,7 +249,7 @@ def launch_dashboard(
                 print("  The browser could not be opened automatically; use the URL above.")
         elif process.poll() is None:
             print("  Browser opening timed out; the dashboard may still be starting.")
-        result = process.wait()
+        result = wait_with_welcome(process)
         if result == 0:
             print_goodbye()
         else:

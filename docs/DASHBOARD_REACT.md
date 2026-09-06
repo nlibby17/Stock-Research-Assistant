@@ -104,6 +104,13 @@ CI verifies views and checks that rebuilding produces no bundle changes.
 
 ## Terminal farewell
 
+While the dashboard runs, the welcome banner's small stock line draws left to
+right in green (`#22C55E`), revealing one column every 0.5 seconds and looping.
+Its axes and message stay stationary. Ctrl+C stops the dashboard and proceeds to
+the existing farewell. Redirected output, CI, unsupported terminals, and small
+windows use static welcome art; shrinking below 65 columns or eight rows stops
+repainting to protect the terminal history.
+
 Animation revision approved for commit/push, 2026-09-06: dense projected clusters of letters, numbers,
 and symbols move right on the upper plane and left on the lower plane. Texture
 projects through the horizontal center of the message line without static rails
