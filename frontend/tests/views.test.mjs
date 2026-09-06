@@ -22,8 +22,16 @@ new Function("require", "module", "exports", compiled.outputFiles[0].text)(
   module,
   module.exports,
 );
-const { Home, Candidates, Comparison, Research, Advanced, ResearchText } =
-  module.exports;
+const {
+  Home,
+  Candidates,
+  Comparison,
+  Research,
+  Advanced,
+  ResearchText,
+  Disclosure,
+  DataTable,
+} = module.exports;
 const candidate = {
   ticker: "TEST",
   company: "Test <company>",
@@ -82,9 +90,63 @@ test("all migrated views render missing and legacy data honestly", () => {
     assert.ok(render(View).length > 100);
   assert.match(render(Candidates), /Unavailable/);
   assert.match(render(Comparison), /at least two/);
-  assert.match(render(Advanced), /Snapshots withheld/);
-  assert.match(render(Advanced), /Installation-current diagnostics/);
-  assert.match(render(Advanced), /Current snapshots were not substituted/);
+  assert.match(render(Advanced), /Personalize ranking and universe/);
+});
+
+test("collapsed diagnostics do not render or serialize stored evidence", () => {
+  const expensive = {
+    toJSON() {
+      throw new Error("Collapsed evidence rendered");
+    },
+  };
+  const html = render(Advanced, { ...data, manifest: expensive });
+  assert.doesNotMatch(html, /disclosure-body.*Data quality and diagnostics/);
+  assert.doesNotMatch(html, /<table|class="json"/);
+});
+
+test("disclosures mount content only when expanded, including nested sections", () => {
+  function Heavy() {
+    throw new Error("Hidden child mounted");
+  }
+  const html = renderToStaticMarkup(
+    React.createElement(
+      Disclosure,
+      { title: "Outer", open: true },
+      React.createElement("p", null, "Visible evidence"),
+      React.createElement(
+        Disclosure,
+        { title: "Inner" },
+        React.createElement(Heavy),
+      ),
+    ),
+  );
+  assert.match(html, /Visible evidence/);
+  assert.match(html, /Inner/);
+});
+
+test("large tables bound cell rendering without dropping the total record count", () => {
+  let rendered = 0;
+  const html = renderToStaticMarkup(
+    React.createElement(DataTable, {
+      rows: Array.from({ length: 1000 }, (_, i) => ({
+        ticker: "SAME",
+        value: i,
+      })),
+      columns: [
+        {
+          key: "value",
+          title: "Value",
+          render: (row) => {
+            rendered++;
+            return row.value;
+          },
+        },
+      ],
+    }),
+  );
+  assert.equal(rendered, 25);
+  assert.match(html, /Rows 1–25 of 1000/);
+  assert.match(html, /Next rows/);
 });
 test("empty candidates never become synthetic stocks", () => {
   const empty = { ...data, candidates: [] };

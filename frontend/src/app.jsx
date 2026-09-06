@@ -84,6 +84,11 @@ function Metric({ title, value, help }) {
   );
 }
 function DataTable({ rows, columns, caption }) {
+  const [page, setPage] = useState(0);
+  const pageSize = 25;
+  const lastPage = Math.max(0, Math.ceil((rows?.length || 0) / pageSize) - 1);
+  const currentPage = Math.min(page, lastPage);
+  const start = currentPage * pageSize;
   if (!rows?.length) return <p className="muted">No records available.</p>;
   const fields =
     columns || Object.keys(rows[0]).map((k) => ({ key: k, title: label(k) }));
@@ -101,8 +106,8 @@ function DataTable({ rows, columns, caption }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, i) => (
-            <tr key={row.ticker || i}>
+          {rows.slice(start, start + pageSize).map((row, i) => (
+            <tr key={start + i}>
               {fields.map((f) => (
                 <td
                   key={f.key}
@@ -126,6 +131,30 @@ function DataTable({ rows, columns, caption }) {
           ))}
         </tbody>
       </table>
+      {rows.length > pageSize && (
+        <div
+          className="table-pagination"
+          role="group"
+          aria-label="Table pagination"
+        >
+          <button
+            disabled={currentPage === 0}
+            onClick={() => setPage(currentPage - 1)}
+          >
+            Previous rows
+          </button>
+          <span aria-live="polite">
+            Rows {start + 1}–{Math.min(start + pageSize, rows.length)} of{" "}
+            {rows.length}
+          </span>
+          <button
+            disabled={currentPage === lastPage}
+            onClick={() => setPage(currentPage + 1)}
+          >
+            Next rows
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -133,10 +162,18 @@ function Json({ value }) {
   return <pre className="json">{JSON.stringify(value, null, 2)}</pre>;
 }
 function Disclosure({ title, children, open = false }) {
+  const [expanded, setExpanded] = useState(open);
   return (
-    <details className="disclosure" open={open || undefined}>
+    <details
+      className="disclosure"
+      open={expanded}
+      onToggle={(event) => {
+        if (event.target === event.currentTarget)
+          setExpanded(event.currentTarget.open);
+      }}
+    >
       <summary>{title}</summary>
-      <div className="disclosure-body">{children}</div>
+      {expanded && <div className="disclosure-body">{children}</div>}
     </details>
   );
 }
@@ -1317,8 +1354,7 @@ function App() {
   const [data, setData] = useState(null),
     [error, setError] = useState(""),
     [page, setPage] = useState("home"),
-    [leaving, setLeaving] = useState(false),
-    [menu, setMenu] = useState(false);
+    [leaving, setLeaving] = useState(false);
   const main = useRef(null),
     navigationTimer = useRef(null);
   useEffect(() => {
@@ -1346,7 +1382,6 @@ function App() {
       () => {
         setPage(next);
         setLeaving(false);
-        setMenu(false);
         window.scrollTo({ top: 0, behavior: "instant" });
         main.current?.focus();
       },
@@ -1358,18 +1393,10 @@ function App() {
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <nav
-        className={"side-nav " + (menu ? "expanded" : "")}
-        aria-label="Dashboard pages"
-      >
-        <button
-          className="nav-toggle"
-          onClick={() => setMenu(!menu)}
-          aria-label="Expand navigation"
-          aria-expanded={menu}
-        >
+      <nav className="side-nav" aria-label="Dashboard pages">
+        <div className="nav-decoration" aria-hidden="true">
           ☰
-        </button>
+        </div>
         {pages.map(([id, name, icon]) => (
           <button
             key={id}
@@ -1459,6 +1486,16 @@ function App() {
     </>
   );
 }
-export { Home, Candidates, Comparison, Research, Advanced, Bars, ResearchText };
+export {
+  Home,
+  Candidates,
+  Comparison,
+  Research,
+  Advanced,
+  Bars,
+  ResearchText,
+  Disclosure,
+  DataTable,
+};
 if (typeof document !== "undefined")
   createRoot(document.getElementById("root")).render(<App />);

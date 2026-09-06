@@ -43,7 +43,16 @@ navigation returns to Home during the session. Reload starts at Home. Only the
 selected research company is mounted. The number menu contains real eligible
 report candidates (normally ten), never fabricated placeholders to fill ten slots.
 Reduced-motion preferences disable entry animations and pointer tilt. Navigation
-also expands on keyboard focus and has a toggle for touch input.
+also expands on keyboard focus. The three-bar header is decorative, with no click
+action or hover highlight. The sidebar fits its items rather than stretching to
+the bottom of the window; short viewports allow scrolling to every navigation item.
+
+Collapsed disclosures mount their contents only while open, including nested
+diagnostics. Closing a section releases its rendered tables and JSON; reopening
+starts its nested sections and table pages fresh. Shared data tables display at
+most 25 rows per page, with Previous/Next controls and the full record count.
+This avoids rendering all 500 stored comparison rows on entry to Advanced while
+keeping every record accessible. The all-rankings CSV remains complete.
 
 ## Frontend development
 
