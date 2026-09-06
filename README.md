@@ -9,6 +9,9 @@ a browser dashboard. It does not connect to a broker or place trades.
 
 ![Dashboard overview showing run status, ranking configuration, and market overview](docs/images/dashboard-overview.jpg)
 
+*Screenshots show the retained Streamlit fallback. React screenshots will follow
+visual acceptance of the new layout.*
+
 ## What it does
 
 - Ranks an explicit stock universe using growth, valuation, quality, momentum, and
@@ -99,6 +102,21 @@ coverage breakdowns, three-month sector leaders, qualitative research, SEC filin
 and comparisons with a compatible previous report. All current rankings can be
 downloaded as an Excel-friendly CSV.
 
+The React dashboard has five in-place views: **Home**, **Top Candidates**, **Stock
+Comparison**, **Research**, and **Advanced**. Use the Home cards or expanding left
+navigation. Research shows one numbered company at a time. Charts animate on
+entering view, with reduced-motion support. The normal launcher and
+`stockrank dashboard` use React; `stockrank dashboard --ui streamlit` opens the
+unchanged fallback. End users do not need Node.js: built assets ship with Python.
+
+After stopping the server, an original horizon animation displays **thank you
+goodbye**, fits the terminal, and continues until **Y + Enter** at **Close terminal?
+[y/n]**. **N + Enter** continues; Ctrl+C also exits the farewell. Unsupported
+terminals receive a static version; redirected output never blocks. Y exits the
+launcher process, not an unrelated terminal. macOS may retain its finished window
+depending on its existing terminal preferences.
+See [frontend development and verification](docs/DASHBOARD_REACT.md).
+
 ![Expanded Research Summary for one candidate showing score, coverage, factors, and research tabs](docs/images/dashboard-research-summary.jpg)
 
 *Example from a stored local report. Rankings are research outputs, not investment
@@ -121,7 +139,8 @@ The application never silently adds securities to a user's approved universe.
 2. SEC EDGAR supplies official company identity, filing, and Company Facts data.
 3. Tested Python code calculates metrics, coverage, and relative scores.
 4. SQLite stores compact caches and immutable run history locally.
-5. Streamlit reads those results into the local dashboard.
+5. A loopback-only Python server reads a consistent SQLite snapshot into the React
+   dashboard. Streamlit remains available as a fallback.
 
 Missing or stale values remain visible instead of being fabricated. SEC-derived
 financial calculations are currently compared with the production provider in an

@@ -167,8 +167,12 @@ def build_command_parser(handlers: Mapping[str, CommandHandler]) -> argparse.Arg
         "provider-shadow-status", help="Inspect provider shadow comparison progress"
     )
     shadow_status_parser.set_defaults(handler=handlers["provider-shadow-status"])
-    dashboard_parser = subparsers.add_parser(
-        "dashboard", help="Launch the local Streamlit dashboard"
+    dashboard_parser = subparsers.add_parser("dashboard", help="Launch the local dashboard")
+    dashboard_parser.add_argument(
+        "--ui",
+        choices=("react", "streamlit"),
+        default="react",
+        help="Dashboard renderer (default: react; streamlit is the fallback)",
     )
     dashboard_parser.set_defaults(handler=handlers["dashboard"])
     return parser

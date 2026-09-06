@@ -194,9 +194,7 @@ def test_base_analysis_succeeds_only_for_its_completed_run(
     assert cli._command_run_analysis(Namespace(demo=False, force=False)) == expected
 
 
-def test_daily_report_uses_base_analysis_then_one_final_validation(
-    monkeypatch, tmp_path
-):
+def test_daily_report_uses_base_analysis_then_one_final_validation(monkeypatch, tmp_path):
     calls = []
     handlers = (
         "command_config_check",
@@ -550,7 +548,7 @@ def test_dashboard_disables_file_watching_and_shows_windows_stop_key(monkeypatch
         lambda url: browser_calls.append(url) or True,
     )
 
-    assert cli.command_dashboard(Namespace()) == 0
+    assert cli.command_dashboard(Namespace(ui="streamlit")) == 0
     assert calls[0][0:4] == [cli.sys.executable, "-m", "streamlit", "run"]
     assert "--server.fileWatcherType=none" in calls[0]
     assert "--server.headless=true" in calls[0]
@@ -592,6 +590,21 @@ def test_terminal_art_fits_a_normal_window():
         assert max(map(len, art.splitlines())) <= 64
 
 
+def test_dashboard_defaults_to_prebuilt_react(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        daily_workflow.subprocess,
+        "Popen",
+        lambda command: calls.append(command) or FakeDashboardProcess(),
+    )
+    monkeypatch.setattr(daily_workflow, "wait_for_dashboard", lambda process, port: True)
+    monkeypatch.setattr(daily_workflow.webbrowser, "open", lambda url: True)
+    assert cli.command_dashboard(Namespace()) == 0
+    assert calls == [[cli.sys.executable, "-m", "stockrank.dashboard_server", "--port=8765"]]
+    assert cli.build_parser().parse_args(["dashboard"]).ui == "react"
+    assert cli.build_parser().parse_args(["dashboard", "--ui", "streamlit"]).ui == "streamlit"
+
+
 def test_dashboard_keeps_running_when_browser_open_fails(monkeypatch, capsys):
     monkeypatch.setattr(
         daily_workflow.subprocess,
@@ -615,7 +628,7 @@ def test_dashboard_ready_wait_uses_only_the_local_port(monkeypatch):
     )
 
     assert daily_workflow.wait_for_dashboard(process, 8765, timeout_seconds=1) is True
-    assert calls == [(('127.0.0.1', 8765), 0.25)]
+    assert calls == [(("127.0.0.1", 8765), 0.25)]
 
 
 def test_dashboard_ready_wait_stops_when_process_exits(monkeypatch):

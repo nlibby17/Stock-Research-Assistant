@@ -147,12 +147,22 @@ If the browser cannot be opened, use the local URL printed in the terminal. It s
 basic observed changes from the previous completed run with the same universe and
 model, offers a CSV download of all current rankings, summarizes three-month sector
 leaders within the selected universe, and provides read-only personalization
-guidance. Candidate expanders keep deterministic score/coverage information,
+guidance. The numbered Research selector keeps deterministic score/coverage information,
 qualitative research, and SEC filings and sources visibly separated. These basic
 comparisons do not claim causal attribution
 or complete the later historical-analysis roadmap. Keep the launching terminal open;
 stop the server with Ctrl+C on Windows or Control+C (⌃C) on macOS. Closing the browser
-tab alone does not stop it. Source-code watching is disabled for this end-user
+tab alone does not stop it. After server shutdown, the terminal-sized horizon
+animation continues until Y + Enter at `Close terminal? [y/n]`; N keeps it running.
+The text `thank you goodbye` remains stationary. Redirected output uses a nonblocking
+static version. A manual command returns to its shell; the double-click launcher
+exits its process (macOS may retain a finished window under its terminal settings).
+
+React is the default; use `stockrank dashboard --ui streamlit` for the retained
+fallback. No Node.js installation or frontend build is required for normal use.
+The React server binds only to loopback, serves prebuilt assets, and reads SQLite
+in a read-only transaction. It neither generates reports nor changes configuration.
+Source-code watching is disabled for this end-user
 workflow, so Watchdog and Xcode Command Line Tools are unnecessary. Deployment is
 not part of this workflow.
 

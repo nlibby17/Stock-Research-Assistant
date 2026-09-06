@@ -66,6 +66,17 @@ stored report, with score/coverage, metric/date, and research/source tabs. Missi
 data remains explicit; it does not rescore stocks or change production inputs.
 Standalone company details and weekly universe proposals are not part of this slice.
 
+Delivery update (2026-09-06): user approved a presentation-only React migration
+for in-place navigation, pointer-reactive square sector cards, vertical stock
+comparison charts, numbered research selection, and visibility-triggered animation.
+React now backs the launcher with a prebuilt local bundle; the unchanged Streamlit
+renderer remains an explicit fallback through visual/cross-platform acceptance.
+The independently written terminal horizon farewell resizes and waits for Y + Enter.
+Implementation details and remaining manual acceptance are in `DASHBOARD_REACT.md`.
+No scoring, SEC promotion, universe activation, or future roadmap work is included.
+Weekly discovery remains due during user-started `morning`; replacements remain
+proposals requiring approval.
+
 As of 2026-09-02, the application's stored history is still small: roughly tens of
 runs spanning only about four to five market dates, with one primary user and one
 other user who has generated a single report. Treat this as the current planning

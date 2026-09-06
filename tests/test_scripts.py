@@ -101,7 +101,8 @@ def test_launchers_use_project_relative_environment_and_morning_command():
     attributes = (Path.cwd() / ".gitattributes").read_text(encoding="utf-8")
 
     assert "%~dp0.." in windows_launcher
-    assert '.venv\\Scripts\\stockrank.exe" morning' in windows_launcher
+    assert 'start "Stock Research Assistant" ".venv\\Scripts\\python.exe" -m stockrank.desktop_launcher' in windows_launcher
+    assert "/wait" not in windows_launcher.lower()
     assert "local application environment is missing" in windows_launcher
     assert 'dirname "${BASH_SOURCE[0]}"' in macos_launcher
     assert '"$stockrank_executable" morning' in macos_launcher
@@ -179,7 +180,7 @@ def test_macos_launcher_helper_creates_link_to_canonical_launcher(tmp_path):
 
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows shortcut installation test")
-def test_windows_launcher_runs_from_outside_project_with_spaces(tmp_path):
+def test_windows_launcher_checks_its_environment_from_outside_project_with_spaces(tmp_path):
     project = tmp_path / "Project Folder With Spaces"
     launcher_dir = project / "launchers"
     executable = project / ".venv" / "Scripts" / "stockrank.exe"
@@ -187,16 +188,13 @@ def test_windows_launcher_runs_from_outside_project_with_spaces(tmp_path):
     launcher_dir.mkdir(parents=True)
     executable.parent.mkdir(parents=True)
     outside.mkdir()
+    # An environment marker exists outside, but not in the project. The missing-
+    # environment message therefore proves the wrapper used its own project path.
+    outside_marker = outside / ".venv" / "Scripts" / "stockrank.exe"
+    outside_marker.parent.mkdir(parents=True)
+    outside_marker.write_text("not an executable", encoding="utf-8")
     launcher = launcher_dir / "Stock Research Assistant.cmd"
     shutil.copy2(Path.cwd() / "launchers" / "Stock Research Assistant.cmd", launcher)
-
-    # tree.com gives us a harmless native executable with a relative-path argument:
-    # finding project/morning proves the launcher changed into its own project.
-    tree_executable = shutil.which("tree.com")
-    assert tree_executable is not None
-    shutil.copy2(tree_executable, executable)
-    marker = project / "morning"
-    marker.mkdir()
 
     completed = subprocess.run(
         ["cmd.exe", "/d", "/c", str(launcher)],
@@ -206,8 +204,8 @@ def test_windows_launcher_runs_from_outside_project_with_spaces(tmp_path):
         check=False,
     )
 
-    assert completed.returncode == 0, completed.stderr
-    assert str(marker).upper() in completed.stdout.strip().upper()
+    assert completed.returncode == 1, completed.stderr
+    assert "local application environment is missing" in completed.stdout
 
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows shortcut installation test")

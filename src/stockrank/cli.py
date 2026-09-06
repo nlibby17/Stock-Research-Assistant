@@ -1762,12 +1762,13 @@ def command_daily_report(args: argparse.Namespace) -> int:
     return run_daily_workflow(steps, load_runtime_settings=load_settings)
 
 
-def command_dashboard(_: argparse.Namespace) -> int:
+def command_dashboard(args: argparse.Namespace) -> int:
     dashboard_path = Path(__file__).with_name("dashboard.py")
     return launch_dashboard(
         dashboard_path,
         platform_name=sys.platform,
         executable=sys.executable,
+        ui=getattr(args, "ui", "react"),
     )
 
 

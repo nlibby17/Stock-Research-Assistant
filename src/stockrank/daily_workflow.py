@@ -10,6 +10,8 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Protocol
 
+from stockrank.farewell import horizon_frame, show_farewell
+
 
 class RuntimeSettings(Protocol):
     runtime_dir: Path
@@ -35,28 +37,12 @@ WELCOME_ART = r"""
      +--------------------->
 """.strip("\n")
 
-_GOODBYE_LINES = (
-    "",
-    "       +                                  .",
-    "                        .-''''-.",
-    "                  _..--'        '--.._",
-    "              .-''    /          /    ''-.",
-    "              '---.../__________/...---'",
-    "                      '-.____.-'       +",
-    "",
-    "thank you".center(56),
-    "",
-)
-GOODBYE_ART = "\n".join(
-    ["  +" + "-" * 56 + "+"]
-    + ["  |" + line.ljust(56) + "|" for line in _GOODBYE_LINES]
-    + ["  +" + "-" * 56 + "+"]
-)
+GOODBYE_ART = "\n".join(horizon_frame(62, 11, 0))
 
 
 def print_goodbye() -> None:
-    print("\nDashboard stopped. You can close this terminal.")
-    print(GOODBYE_ART)
+    print("\nDashboard stopped.")
+    show_farewell()
 
 
 def human_elapsed(seconds: float) -> str:
@@ -146,11 +132,14 @@ def launch_dashboard(
     platform_name: str = sys.platform,
     executable: str = sys.executable,
     server_port: int = 8765,
+    ui: str = "streamlit",
     process_start: Callable[[list[str]], DashboardProcess] | None = None,
     browser_open: Callable[[str], bool] | None = None,
     server_wait: Callable[[DashboardProcess, int], bool] | None = None,
 ) -> int:
-    """Launch Streamlit in the default browser with shutdown guidance."""
+    """Launch the selected local dashboard with shutdown guidance."""
+    if ui not in {"react", "streamlit"}:
+        raise ValueError("Dashboard UI must be react or streamlit")
     process_start = process_start or subprocess.Popen
     browser_open = browser_open or webbrowser.open
     server_wait = server_wait or wait_for_dashboard
@@ -175,6 +164,8 @@ def launch_dashboard(
         f"--server.port={server_port}",
         str(dashboard_path),
     ]
+    if ui == "react":
+        command = [executable, "-m", "stockrank.dashboard_server", f"--port={server_port}"]
     process = process_start(command)
     try:
         if server_wait(process, server_port):

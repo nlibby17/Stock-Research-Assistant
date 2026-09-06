@@ -20,17 +20,15 @@ if not exist ".venv\Scripts\stockrank.exe" (
     exit /b 1
 )
 
-".venv\Scripts\stockrank.exe" morning
+rem Hand off to an app-owned console, then end this batch before any Ctrl+C.
+rem Keeping cmd.exe waiting would add its own "Terminate batch job (Y/N)?" prompt.
+start "Stock Research Assistant" ".venv\Scripts\python.exe" -m stockrank.desktop_launcher
 set "STOCKRANK_EXIT=%ERRORLEVEL%"
 if not "%STOCKRANK_EXIT%"=="0" (
     echo.
     echo Stock Research Assistant stopped because something requires attention.
     echo Review the message above before closing this window.
     pause
-) else (
-    echo.
-    echo Press any key to close this window.
-    pause >nul
 )
 
 popd

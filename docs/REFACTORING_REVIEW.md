@@ -3059,3 +3059,20 @@ not blanket approval to implement all 27 substeps without review.
   No active runtime cleanup, provider request, formula, schema, scoring, ranking,
   report/dashboard content, or universe policy changed. No private runtime/config
   files are staged. S3.3 has not begun.
+
+### Approved presentation migration — 2026-09-06
+
+- User explicitly approved React after requesting animated in-place views and
+  pointer-reactive cards that would otherwise deepen Streamlit DOM customization.
+- Scope is presentation plus a small read-only loopback adapter and terminal
+  farewell. Existing Python scoring, providers, evidence eligibility, SQL schema,
+  production inputs and private configuration are unchanged. This does not restart
+  the deferred structural-refactoring program.
+- `dashboard_data.py` reuses Storage reads in one read-only transaction;
+  report-bound cutoffs, membership and shadow linkage remain distinct from current
+  installation diagnostics. `dashboard_server.py` serves prebuilt assets and GET
+  report/CSV endpoints. No cloud services or Node runtime enter end-user setup.
+  Streamlit remains available with `--ui streamlit`.
+- User visually accepted the finished UI and explicitly authorized checkpoint
+  commit and push on 2026-09-06. A real macOS launcher check remains pending.
+  See `DASHBOARD_REACT.md` for verification and fallback.
