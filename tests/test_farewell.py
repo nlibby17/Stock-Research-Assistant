@@ -69,6 +69,17 @@ def test_both_halves_animate_and_color_fades_toward_white():
     assert farewell.MESSAGE in colored
 
 
+def test_planes_slide_in_opposite_directions_around_fixed_horizon():
+    first = farewell.horizon_frame(119, 37, 0)
+    second = farewell.horizon_frame(119, 37, 1)
+    # At ten rows from the horizon, one second moves the mesh ten columns.
+    assert second[8][:-10] == first[8][10:]
+    assert second[28][10:] == first[28][:-10]
+    assert second[18] == first[18]
+    assert second[8] != first[8]
+    assert second[28] != first[28]
+
+
 def test_desktop_success_does_not_add_another_prompt(monkeypatch):
     from stockrank import desktop_launcher
 

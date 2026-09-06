@@ -3,6 +3,24 @@
 Approved presentation migration, 2026-09-06. No scoring, providers, schema,
 production universe, SEC promotion or weekly-discovery behavior changes.
 
+Presentation follow-up, 2026-09-06 (user reviewed and approved for commit/push): Home
+sector cards are compact rectangles with stationary hover highlighting. Navigation
+card icons and text are larger; corner arrows retain their size. Market Overview
+and the two Top Candidates panels share the Home title's gold border and background.
+Candidate bars progress from deep gold on the left to pale gold on the right,
+with the original gold at seventh position in a ten-stock chart. Research overview
+metrics reuse Home's status-card treatment with a stationary hover glow, and the
+rank/sector label is larger. VS and Advanced are unchanged.
+The Research factor chart uses a shorter plotting area and wider bars, retaining
+the 0–100 scale and existing tooltips. The shared page background adds faint gold,
+violet, and blue radial washes over a softer grid. The user accepted these
+refinements and the farewell visuals before authorizing this checkpoint.
+
+The farewell mesh has denser detail and lateral parallax: upper rows move left,
+lower rows move right. The center line, message, colors, sizing, and exit controls
+retain their existing behavior. Verification: 14 frontend tests and 12 farewell
+tests pass; production assets rebuilt; desktop and narrow Home layouts inspected.
+
 ## Run and fallback
 
 `stockrank dashboard` and the existing morning/double-click flow use React.
@@ -73,7 +91,7 @@ CI verifies views and checks that rebuilding produces no bundle changes.
 
 ## Terminal farewell
 
-The mirrored upper/lower perspective-plane algorithm is independently authored, with no copied code,
+The upper/lower perspective-plane algorithm is independently authored, with no copied code,
 frames or artwork from the referenced animation. `thank you goodbye` is stationary
 at the horizon. A cobalt-blue to icy-white gradient colors both halves. Dimensions are read every frame, reserving rows for
 `Close terminal? [y/n]`. Y + Enter exits; N + Enter continues indefinitely;

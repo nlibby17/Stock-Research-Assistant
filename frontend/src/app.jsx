@@ -83,7 +83,7 @@ function Metric({ title, value, help }) {
     </div>
   );
 }
-function DataTable({ rows, columns, caption }) {
+function DataTable({ rows, columns, caption, className = "" }) {
   const [page, setPage] = useState(0);
   const pageSize = 25;
   const lastPage = Math.max(0, Math.ceil((rows?.length || 0) / pageSize) - 1);
@@ -93,7 +93,7 @@ function DataTable({ rows, columns, caption }) {
   const fields =
     columns || Object.keys(rows[0]).map((k) => ({ key: k, title: label(k) }));
   return (
-    <div className="table-wrap">
+    <div className={"table-wrap " + className}>
       <table>
         {caption && <caption>{caption}</caption>}
         <thead>
@@ -268,6 +268,8 @@ function Bars({
   series = ["Score"],
   colors = ["gold"],
   title = "Score comparison",
+  rankedGold = false,
+  compact = false,
 }) {
   const [ref, visible] = useVisible();
   const [tooltip, setTooltip] = useState(null);
@@ -285,15 +287,20 @@ function Bars({
       y: Math.max(12, pointerY - bounds.top - 140),
     });
   }
-  const width = Math.max(640, groups.length * 78),
-    height = 305,
-    plot = 220,
-    bottom = 250,
+  const width = compact ? 900 : Math.max(640, groups.length * 78),
+    height = compact ? 230 : 305,
+    plot = compact ? 160 : 220,
+    bottom = compact ? 190 : 250,
     groupWidth = (width - 60) / Math.max(groups.length, 1);
   return (
     <figure
       ref={ref}
-      className={"chart " + (visible ? "is-visible" : "")}
+      className={
+        "chart " +
+        (compact ? "compact-chart " : "") +
+        (rankedGold ? "gold-panel " : "") +
+        (visible ? "is-visible" : "")
+      }
       aria-label={title}
       onPointerLeave={() => setTooltip(null)}
       onKeyDown={(event) => {
@@ -324,7 +331,10 @@ function Bars({
           {groups.map((g, i) => (
             <g key={g.label}>
               {g.values.map((value, j) => {
-                const barWidth = Math.min(42, groupWidth / (series.length + 1)),
+                const barWidth = Math.min(
+                    compact ? 80 : 42,
+                    groupWidth / (series.length + 1),
+                  ),
                   x =
                     42 +
                     i * groupWidth +
@@ -367,7 +377,27 @@ function Bars({
                           (Math.max(0, Math.min(100, value)) / 100) * plot
                         }
                         rx="3"
-                        style={{ animationDelay: `${i * 35 + j * 30}ms` }}
+                        style={{
+                          animationDelay: `${i * 35 + j * 30}ms`,
+                          fill: rankedGold
+                            ? [
+                                "#986617",
+                                "#a77725",
+                                "#b58835",
+                                "#c09947",
+                                "#caa657",
+                                "#d2af63",
+                                "#d8b66e",
+                                "#e5c88b",
+                                "#f2d8a0",
+                                "#ffe7b5",
+                              ][
+                                Math.round(
+                                  (i / Math.max(groups.length - 1, 1)) * 9,
+                                )
+                              ]
+                            : undefined,
+                        }}
                       />
                     ) : (
                       <text
@@ -531,7 +561,7 @@ function Home({ data, navigate }) {
         <h2>3-Month Sector Leaders</h2>
         <div className="square-grid">
           {data.sectors.map((s, i) => (
-            <TiltCard
+            <article
               key={s.sector}
               className="sector"
               title={"Usable companies: " + s.tickers.join(", ")}
@@ -541,7 +571,7 @@ function Home({ data, navigate }) {
               <strong>{percent(s.median_return_3m)}</strong>
               <small>{s.member_count} usable companies</small>
               <span className="member-list">{s.tickers.join(" · ")}</span>
-            </TiltCard>
+            </article>
           ))}
         </div>
         {!data.sectors.length && (
@@ -556,6 +586,7 @@ function Home({ data, navigate }) {
       <section>
         <h2>Market Overview</h2>
         <DataTable
+          className="gold-panel"
           rows={data.market}
           columns={[
             { key: "ticker", title: "Ticker" },
@@ -651,6 +682,7 @@ function Candidates({ data }) {
       </Heading>
       <Bars
         title="Top candidate scores"
+        rankedGold
         groups={data.candidates.map((r) => ({
           label: r.ticker,
           values: [r.overall_score],
@@ -663,6 +695,7 @@ function Candidates({ data }) {
         <Notice>{data.empty_candidates}</Notice>
       ) : (
         <DataTable
+          className="gold-panel"
           rows={data.candidates}
           columns={[
             { key: "rank", title: "Rank" },
@@ -971,7 +1004,7 @@ function Research({ data }) {
           </div>
           {tab === "overview" && (
             <>
-              <div className="metrics">
+              <div className="metrics home-metrics research-metrics">
                 <Metric
                   title="Overall score"
                   value={number(r.overall_score)}
@@ -988,6 +1021,7 @@ function Research({ data }) {
                 />
               </div>
               <Bars
+                compact
                 groups={factors.map((f) => ({
                   label: label(f),
                   values: [r.component_scores[f]],

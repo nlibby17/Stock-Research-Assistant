@@ -21,23 +21,32 @@ def horizon_frame(columns: int, rows: int, phase: float) -> list[str]:
         if y == horizon:
             line = "-" * width
         else:
+            # A fixed perspective mesh slides laterally in opposite directions.
+            # Nearer rows travel faster, giving the two planes parallax depth.
             depth = height / (distance + 1)
-            cross = (depth + phase * 2) % 1 < 0.13
+            cross = depth % 1 < 0.22
+            shift = int(phase * (4 + distance * 0.6))
+            direction = 1 if y < horizon else -1
+            spacing = max(4.0, (distance + 1) * 0.85)
             chars = []
             for x in range(width):
-                lateral = (x - width / 2) / (distance + 1) * 0.7
-                ray = abs(lateral - round(lateral)) < 0.055
+                position = x + direction * shift
+                lateral = (position - width / 2) / spacing
+                ray = abs(lateral - round(lateral)) * spacing < 0.6
+                detail = (position + distance * 2) % max(3, int(spacing))
                 chars.append(
                     "+"
                     if cross and ray
                     else "-"
                     if cross
                     else "/"
-                    if ray and ((x < width / 2) == (y > horizon))
+                    if ray and y > horizon
                     else "\\"
                     if ray
+                    else ":"
+                    if detail == 0
                     else "."
-                    if distance > height * 0.35 and (x + y) % 5 == 0
+                    if detail == 2
                     else " "
                 )
             line = "".join(chars)
