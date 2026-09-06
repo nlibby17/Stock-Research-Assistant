@@ -27,6 +27,10 @@ if not "%STOCKRANK_EXIT%"=="0" (
     echo Stock Research Assistant stopped because something requires attention.
     echo Review the message above before closing this window.
     pause
+) else (
+    echo.
+    echo Press any key to close this window.
+    pause >nul
 )
 
 popd

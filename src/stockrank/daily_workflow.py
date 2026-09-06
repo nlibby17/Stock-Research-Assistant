@@ -27,6 +27,37 @@ class DashboardProcess(Protocol):
 
 WorkflowStep = tuple[str, Callable[[argparse.Namespace], int], argparse.Namespace]
 
+WELCOME_ART = r"""
+     |                 /\      STOCK RESEARCH ASSISTANT
+     |       /\   /\  /  \     ------------------------
+     |   /\ /  \_/  \/
+     |__/  V                   Thank you for using my software!
+     +--------------------->
+""".strip("\n")
+
+_GOODBYE_LINES = (
+    "",
+    "       +                                  .",
+    "                        .-''''-.",
+    "                  _..--'        '--.._",
+    "              .-''    /          /    ''-.",
+    "              '---.../__________/...---'",
+    "                      '-.____.-'       +",
+    "",
+    "thank you".center(56),
+    "",
+)
+GOODBYE_ART = "\n".join(
+    ["  +" + "-" * 56 + "+"]
+    + ["  |" + line.ljust(56) + "|" for line in _GOODBYE_LINES]
+    + ["  +" + "-" * 56 + "+"]
+)
+
+
+def print_goodbye() -> None:
+    print("\nDashboard stopped. You can close this terminal.")
+    print(GOODBYE_ART)
+
 
 def human_elapsed(seconds: float) -> str:
     if seconds < 1:
@@ -127,9 +158,7 @@ def launch_dashboard(
     dashboard_url = f"http://localhost:{server_port}"
     border = "=" * 62
     print(f"\n{border}")
-    print("       /\\    STOCK RESEARCH ASSISTANT")
-    print("  /\\  /  \\   ------------------------")
-    print(" /  \\/       Thank you for trying my software!")
+    print(WELCOME_ART)
     print()
     print("  DASHBOARD IS RUNNING")
     print("  Opening it in your default browser...")
@@ -159,7 +188,12 @@ def launch_dashboard(
                 print("  The browser could not be opened automatically; use the URL above.")
         elif process.poll() is None:
             print("  Browser opening timed out; the dashboard may still be starting.")
-        return process.wait()
+        result = process.wait()
+        if result == 0:
+            print_goodbye()
+        else:
+            print(f"\nDashboard exited with code {result}; review the messages above.")
+        return result
     except KeyboardInterrupt:
         if process.poll() is None:
             process.terminate()
@@ -168,5 +202,5 @@ def launch_dashboard(
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait()
-        print("\nDashboard stopped.")
+        print_goodbye()
         return 0

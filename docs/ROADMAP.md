@@ -60,6 +60,12 @@ service, deployment, or blanket implementation/commit of every future feature.
 
 ### Evidence-proportional implementation guardrail
 
+Delivery update (2026-09-05): the two-stock VS slice of reduced 3.5 is implemented
+and awaiting user visual review. It compares eligible top candidates from the same
+stored report, with score/coverage, metric/date, and research/source tabs. Missing
+data remains explicit; it does not rescore stocks or change production inputs.
+Standalone company details and weekly universe proposals are not part of this slice.
+
 As of 2026-09-02, the application's stored history is still small: roughly tens of
 runs spanning only about four to five market dates, with one primary user and one
 other user who has generated a single report. Treat this as the current planning

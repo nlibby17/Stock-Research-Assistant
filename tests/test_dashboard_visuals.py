@@ -57,6 +57,9 @@ def test_dashboard_keeps_visuals_semantic_and_optional():
     assert "score_breakdown(result, run_component_weights)" in dashboard
     assert '<div class="sr-candidate-table sr-market-table"><table><thead><tr>' in dashboard
     assert "<th>Ticker</th><th>Role</th><th>Price</th><th>As of</th>" in dashboard
+    assert "<th>As of</th><th>3M %</th><th>1M %</th>" in dashboard
+    market_rows = dashboard.split("market_table_rows = []", 1)[1].split("st.markdown(", 1)[0]
+    assert market_rows.index('float(momentum_3m)') < market_rows.index('float(momentum_1m)')
     assert "for ticker, value in market_context_leadership_order(context):" in dashboard
     assert "Sorted by three-month performance; unavailable returns appear last." in dashboard
     assert dashboard.index('<div class="sr-candidate-table sr-market-table">') < dashboard.index(

@@ -563,6 +563,7 @@ def test_dashboard_disables_file_watching_and_shows_windows_stop_key(monkeypatch
     assert "If the browser does not open: http://localhost:8765" in output
     assert "Dashboard opened in the default browser" in output
     assert "To stop it: press Ctrl+C in this terminal" in output
+    assert "thank you" in output
 
 
 def test_dashboard_handles_macos_control_c_cleanly(monkeypatch, capsys):
@@ -579,6 +580,16 @@ def test_dashboard_handles_macos_control_c_cleanly(monkeypatch, capsys):
     assert "DASHBOARD IS RUNNING" in output
     assert "To stop it: press Control+C (⌃C) in this terminal" in output
     assert "Dashboard stopped." in output
+    assert "thank you" in output
+
+
+def test_terminal_art_fits_a_normal_window():
+    assert len(set(map(len, daily_workflow.GOODBYE_ART.splitlines()))) == 1
+    assert "Curiosity" not in daily_workflow.WELCOME_ART
+    for art, maximum_lines in ((daily_workflow.WELCOME_ART, 5), (daily_workflow.GOODBYE_ART, 13)):
+        assert art.isascii()
+        assert len(art.splitlines()) <= maximum_lines
+        assert max(map(len, art.splitlines())) <= 64
 
 
 def test_dashboard_keeps_running_when_browser_open_fails(monkeypatch, capsys):

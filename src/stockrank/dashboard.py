@@ -11,6 +11,7 @@ import altair as alt
 import streamlit as st
 
 from stockrank.config import load_settings
+from stockrank.dashboard_vs import render_stock_vs
 from stockrank.data.sec import load_sec_concept_specs
 from stockrank.presentation import (
     candidate_policy_summary,
@@ -273,6 +274,14 @@ st.markdown(
         white-space: nowrap;
     }
     .sr-candidate-table .sr-number { text-align: right; }
+    .sr-candidate-table tbody tr:hover {background:rgba(189,176,237,.08);}
+    .sr-nav a[aria-current="location"] {background:rgba(231,201,127,.12);
+        color:#e7c97f;border-color:#d6a84a;}
+    .sr-missing {display:inline-block;color:#a9b7ca !important;background:#202b3c;
+        border:1px solid #3d4a5e;border-radius:5px;padding:1px 6px;font-size:.8rem;}
+    [data-testid="stHeading"] h2 {margin-top:1.25rem;margin-bottom:.5rem;}
+    [data-testid="stHeading"] h3 {margin-top:.75rem;margin-bottom:.35rem;}
+    [data-testid="stCaptionContainer"] {margin-bottom:.4rem;}
     .sr-score-cell { align-items: center; display: flex; gap: .55rem; min-width: 150px; }
     .sr-score-track {
         background: #202c3e;
@@ -284,6 +293,7 @@ st.markdown(
     }
     .sr-score-fill { background: #d6a84a; border-radius: inherit; height: 100%; }
     .sr-score-value { color: #dfe7f2; font-variant-numeric: tabular-nums; }
+    .sr-candidate-table td.sr-score-tier { color: #bdb0ed; }
     .sr-candidate-intro {
         color: #8fa1b9;
         font-size: .88rem;
@@ -466,6 +476,7 @@ st.markdown(
     <nav class="sr-nav" aria-label="Dashboard sections">
       <a href="#dashboard" target="_self">Overview</a>
       <a href="#top-candidates" target="_self">Top candidates</a>
+      <a href="#stock-vs" target="_self">Stock VS</a>
       <a href="#research" target="_self">Research</a>
       <a href="#advanced" target="_self">Advanced</a>
     </nav>
@@ -541,15 +552,17 @@ for ticker, value in market_context_leadership_order(context):
         f"<td>{html.escape(str(value['category']))}</td>"
         f'<td class="sr-number">{f"${float(price):,.2f}" if price is not None else "Unavailable"}</td>'
         f"<td>{html.escape(str(value['price_as_of'] or 'Unavailable'))}</td>"
-        f'<td class="sr-number">{f"{float(momentum_1m):.1%}" if momentum_1m is not None else "Unavailable"}</td>'
         f'<td class="sr-number">{f"{float(momentum_3m):.1%}" if momentum_3m is not None else "Unavailable"}</td>'
+        f'<td class="sr-number">{f"{float(momentum_1m):.1%}" if momentum_1m is not None else "Unavailable"}</td>'
         "</tr>"
     )
 st.markdown(
     '<div class="sr-candidate-table sr-market-table"><table><thead><tr>'
-    "<th>Ticker</th><th>Role</th><th>Price</th><th>As of</th><th>1M %</th><th>3M %</th>"
+    "<th>Ticker</th><th>Role</th><th>Price</th><th>As of</th><th>3M %</th><th>1M %</th>"
     "</tr></thead><tbody>"
-    + "".join(market_table_rows)
+    + "".join(market_table_rows).replace(
+        ">Unavailable</td>", '><span class="sr-missing">Unavailable</span></td>'
+    )
     + "</tbody></table></div>",
     unsafe_allow_html=True,
 )
@@ -635,7 +648,7 @@ if candidates:
             f'<div class="sr-score-fill" style="width:{score:.1f}%"></div></div>'
             f'<span class="sr-score-value">{score:.1f}</span></div></td>'
             f'<td class="sr-number">{float(result["overall_coverage"]):.0%}</td>'
-            f'<td>{html.escape(score_tier(result["recommendation"]))}</td>'
+            f'<td class="sr-score-tier">{html.escape(score_tier(result["recommendation"]))}</td>'
             "</tr>"
         )
     st.markdown(
@@ -705,6 +718,8 @@ if candidates:
     st.altair_chart(score_chart, width="stretch", theme=None)
 else:
     st.info(no_candidate_explanation(results, run_app_config, run_eligibility))
+
+render_stock_vs(candidates, research_companies, dict(run))
 
 st.header("Research Summary", anchor="research")
 filing_cutoff_disclosure = filings_for_completed_run((), analysis_completed_at)

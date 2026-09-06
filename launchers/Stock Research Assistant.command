@@ -26,7 +26,8 @@ if ((stockrank_exit != 0)); then
     echo
     echo "Stock Research Assistant stopped because something requires attention."
     echo "Review the message above before closing this window."
-    read -r -p "Press Return to close..." _
 fi
+
+read -r -p "Press Return to close..." _
 
 exit "$stockrank_exit"

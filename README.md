@@ -15,6 +15,8 @@ a browser dashboard. It does not connect to a broker or place trades.
   risk metrics.
 - Shows score composition, data coverage, market context, sector leaders, SEC
   filings, and source-aware research details.
+- Compares two eligible top candidates in **Stock VS**, with interactive selectors
+  and tabs for stored scores, key metrics, and same-report research and sources.
 - Uses local SQLite history so reports remain reproducible and comparable.
 - Supports personal ranking profiles and custom ticker universes on each computer.
 - Runs locally on Windows and macOS with a guided installer and desktop launcher.
