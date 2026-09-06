@@ -4,6 +4,12 @@ This document is the authoritative record for the pre-Step-3 code-structure revi
 It is intentionally separate from the product roadmap: refactoring must preserve
 application behavior and does not advance or redefine a product-roadmap step.
 
+Current presentation checkpoint: `9acd197` is committed and pushed; the user has
+accepted the React UI and reported successful Mac operation. Hosted CI passed.
+See `DASHBOARD_REACT.md` and the current handoff in `ROADMAP.md`. Dated test counts,
+pending approvals and platform-check notes in older entries below describe those
+historical checkpoints, not outstanding requirements for the current release.
+
 ## Campaign closeout and revised scope — approved 2026-09-05
 
 The user approved ending mandatory structural refactoring after S3.2 (`81c5dc0`)
@@ -3074,5 +3080,6 @@ not blanket approval to implement all 27 substeps without review.
   report/CSV endpoints. No cloud services or Node runtime enter end-user setup.
   Streamlit remains available with `--ui streamlit`.
 - User visually accepted the finished UI and explicitly authorized checkpoint
-  commit and push on 2026-09-06. A real macOS launcher check remains pending.
+  commit and push on 2026-09-06, completed as `9acd197`. The user subsequently
+  reported flawless operation on their Mac; hosted CI also passed for this commit.
   See `DASHBOARD_REACT.md` for verification and fallback.

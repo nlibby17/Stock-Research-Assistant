@@ -69,9 +69,10 @@ contracts remain inspectable but are explicitly nonqualifying.
 
 The calculation layer does not read, overwrite, or rescore `run_results`. At Step
 2.4A completion, production model `v1.0.0` continued using the existing Yahoo
-summary fields. The later `v1.2.0` production model retains those Yahoo fundamental
-inputs while adding market-session, ratio-validity, and peer-sample guardrails; it
-does not promote SEC metrics.
+summary fields. Current default production model `v1.3.0` retains those Yahoo
+fundamental inputs, includes the later market-session, ratio-validity and
+peer-sample guardrails, and adds price/liquidity eligibility floors and deterministic
+ticker-order tie breaking. It does not promote SEC metrics.
 Promotion remains prohibited until Step 2.4B shadow comparison is complete and the
 user explicitly approves a new model version in Step 2.4C.
 

@@ -1,8 +1,12 @@
 # Step 2.4B — SEC/Yahoo Shadow Provider Comparison
 
-Step 2.4B is in progress. The comparison infrastructure and first qualified
-full-universe market-data date are complete, but promotion evidence requires three
-distinct underlying market-data dates. Current progress is **1/3**.
+Step 2.4B's comparison infrastructure is implemented; its evidence/review gate
+remains open. Promotion requires three qualifying distinct underlying market-data
+dates. Progress is installation-specific: check `stockrank provider-shadow-status`
+rather than assuming a fixed count. Earlier evidence predating the schema-11
+formula-contract gate remains readable but does not qualify. Production inputs
+remain unchanged; this gate does not block independent dashboard or universe-proposal
+work under the active plan in `ROADMAP.md`.
 
 ## Purpose and isolation
 
@@ -58,6 +62,9 @@ are never applied by the shadow process.
 
 ## First eligible full-universe result — 2026-08-27
 
+This is historical acceptance evidence under the contract then in effect, not a
+claim that this date qualifies under today's formula-contract gate.
+
 The first eligible `provider-shadow-v1.0.1` run stored 500 of 500 expected rows
 across 50 companies and 10 mappings:
 
@@ -90,8 +97,9 @@ and alignment note.
 
 ## Remaining acceptance work
 
-1. Run the normal daily data workflow on two additional market-data dates.
-2. Record one successful full-universe shadow run on each new date.
+1. Inspect the installation's current qualifying distinct-date count and contracts.
+2. Accumulate any missing dates through normal user-started daily workflows until
+   three dates qualify; repeated runs cannot manufacture new market-data dates.
 3. Review systematic discrepancies and representative edge cases across all three
    dates.
 4. Confirm that comparison tables remain isolated from rankings and document the
@@ -100,7 +108,10 @@ and alignment note.
 Only then may the user decide whether to begin Step 2.4C. A comparison qualifies
 only when it follows a recently completed production run containing the exact
 configured universe, with a price date for every stock and one consistent market-data
-date. Same-close, after-midnight, and weekend reruns are useful for testing but do
+date. Every security must also use the same complete SEC formula version and
+manifest, matching the currently supported contract. Schema 11 records the exact
+consumed contract set; missing, mixed, unsupported and legacy-unrecorded contracts
+are diagnostic-only evidence. Same-close, after-midnight, and weekend reruns are useful for testing but do
 not advance the distinct-date requirement. Evidence from a different universe
 version is tracked separately and cannot advance the active universe's count. If the production ranking fails, the
 daily workflow skips the shadow step rather than attaching evidence to an older run.

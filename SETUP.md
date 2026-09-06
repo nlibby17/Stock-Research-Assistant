@@ -146,6 +146,32 @@ return to that window and press:
 
 Closing only the browser tab does not stop the local dashboard server.
 
+After shutdown, a blue-to-white horizon animation displays **thank you goodbye**
+and automatically fits the terminal. At **Close terminal? [y/n]**, type **Y** and
+press **Enter/Return** to exit, or **N** and Enter/Return to keep it running. Your
+typed choice is visible; Ctrl+C also exits the animation. There is no second
+success confirmation. A manually started command returns to its existing shell;
+macOS Terminal may retain the finished window according to its own preferences.
+Unsupported terminals use a static farewell; redirected output never waits.
+
+### Open the existing report without a new run
+
+```powershell
+# Windows
+.\.venv\Scripts\stockrank.exe dashboard
+```
+
+```bash
+# macOS
+./.venv/bin/stockrank dashboard
+```
+
+The default React dashboard uses the latest stored report. Reload the browser
+after generating a new report or importing research. Normal installation and
+updates include the built interface: no Node.js or frontend build is needed.
+Append `--ui streamlit` to the platform's dashboard command for the retained
+Streamlit fallback. See [dashboard details](docs/DASHBOARD_REACT.md).
+
 ## Create or repair the desktop launcher
 
 Run the appropriate helper from the project folder:
@@ -233,6 +259,10 @@ bash ./scripts/update.sh
 The updater safely downloads project changes, synchronizes dependencies, validates
 the installation and personal configuration, and runs the tests. It preserves
 `.env`, local preferences, the custom universe, and ignored `runtime/` history.
+
+Relaunch the desktop item after updating; an already-running process still uses
+its previously loaded code. On Windows the launcher opens a dedicated Python
+console so Ctrl+C does not trigger an extra batch-file termination question.
 
 ## Useful troubleshooting
 

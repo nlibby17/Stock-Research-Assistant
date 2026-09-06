@@ -2,8 +2,10 @@
 
 Step 2 strengthens data identity, provenance, availability dates, and provider
 reliability before the application adds historical attribution or backtesting.
-Yahoo remains the price source while SEC EDGAR becomes the authoritative source
-for supported reported fundamentals.
+Yahoo remains the production source for prices and summary fundamentals. SEC EDGAR
+supplies primary-source evidence and isolated calculations; it does not become a
+ranking source without a separately approved Step 2.4C promotion. Keeping Yahoo
+inputs unchanged is the current decision.
 
 ## Milestones
 
@@ -34,6 +36,8 @@ for supported reported fundamentals.
    - **2.4C:** reviewed precedence/fallback rules, before/after ranking comparison,
      and explicit user approval before promotion to a new model version.
 5. **2.5 Versioned universe proposals**
+   - next proposed product feature under the reduced active plan; discovery runs
+     weekly when due during user-started `morning`, not a background scheduler;
    - listing/CIK joins, eligibility checks, corporate-action handling, and dated
      proposed universe versions;
    - proposals are never activated automatically and never rewrite prior runs.
@@ -98,8 +102,8 @@ the latest filing available at the requested cutoff, then uses configured concep
 priority to resolve aliases from that filing. Missing concepts remain missing.
 
 Step 2.3 does not change ranking values. Step 2.4A now derives isolated financial
-snapshots; Step 2.4B will compare those values with Yahoo summary fields, document
-differences, and define possible precedence and fallbacks. Production ranking can
+snapshots; Step 2.4B compares those values with Yahoo summary fields and records
+differences and possible fallback candidates. Production ranking can
 change only through the explicit Step 2.4C promotion gate.
 Provider health requires the five configured core concepts for every company.
 Optional concepts remain visible as coverage counts because fields such as gross
@@ -119,7 +123,8 @@ The build reads only locally stored Company Facts and appends immutable calculat
 snapshots. A date-only cutoff means the end of that date in the configured local
 timezone. Each metric records its period, exact decimal value, quality state,
 formula, missing/invalid reason, and source-fact lineage. The dashboard exposes
-coverage and selected values under Data Quality, clearly labelled as non-ranking
+coverage and selected values in the Advanced view's disclosure (Data Quality in
+the Streamlit fallback), clearly labelled as non-ranking
 inputs. Detailed rules and the live acceptance result are documented in
 [`STEP_2_4A.md`](STEP_2_4A.md).
 
@@ -135,7 +140,9 @@ The comparison reads the latest eligible Step 2.4A snapshot and the stored Yahoo
 fundamental snapshot for each company, then freezes both sides in separate shadow
 tables. Versioned configuration defines field mappings, freshness limits, period
 alignment notes, and strict/material tolerances. Promotion evidence must link to a
-complete production run covering all 50 stocks on one consistent underlying
-market-data date; command time and repeated same-close runs do not advance the
-count. The implementation and first-run findings are documented in
+complete production run covering the exact configured universe (50 stocks by
+default) on one consistent underlying market-data date, using the same complete,
+currently supported SEC formula contract for every security. Command time and
+repeated same-close runs do not advance the count. The implementation and dated
+first-run findings are documented in
 [`STEP_2_4B.md`](STEP_2_4B.md).

@@ -4,6 +4,10 @@ Read `README.md`, `docs/DAILY_WORKFLOW.md`, and `docs/ROADMAP.md` before operati
 changing this project. Follow the roadmap sequence and acceptance gates. Preserve
 unrelated user changes and inspect `git status` before editing.
 
+For dashboard or launcher work, also read `docs/DASHBOARD_REACT.md`. React is the
+default local dashboard; Streamlit is an explicit fallback. Current delivery status
+and the next-session starting point are at the top of `docs/ROADMAP.md`.
+
 When a user asks to run a daily report, morning analysis, or equivalent full
 research workflow, read `CODEX.md` and follow its two-part completion contract. Do
 not stop after generating or previewing a separate research Markdown file. The

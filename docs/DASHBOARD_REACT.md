@@ -100,8 +100,12 @@ Preview without generating a report: `python -m stockrank.farewell`.
   are shipped as dashboard data. Tests cover formatting, distinct pair selection,
   missing values, escaped content, default research selection and vertical bars.
 - Browser checks use existing stored reports, not new daily runs. User visual
-  acceptance, a real macOS terminal/launcher check and hosted cross-platform CI
-  remain pending; Streamlit is retained for this reason.
+  acceptance is complete. On 2026-09-06 the user also reported flawless operation
+  on their Mac after updating. This is user-reported manual verification, not an
+  agent-run test or a claim about every macOS version. Streamlit remains optional.
+- Hosted [CI run 34012607584](https://github.com/nlibby17/Stock-Research-Assistant/actions/runs/34012607584)
+  completed successfully for `9acd197`; the workflow covers Python on Windows,
+  macOS and Ubuntu, plus frontend tests, formatting and bundle consistency.
 
 Local checkpoint after finishing touches: 345 Python tests passed, four platform-specific
 tests skipped; 11 frontend tests and production build passed. Browser checks confirmed all five
@@ -115,9 +119,11 @@ the `Candidate Score Comparison` heading now names the table below it. The redun
 eligibility banner is removed, not the eligibility rules. Graph details use explicit
 pointer/focus tooltips. Research has larger title-case tier badges and reactive
 number cards; Stock Comparison adds tilt only. A Windows pseudo-terminal test
-confirmed the typed Y is visible and one Enter exits the farewell. The new
-double-click console handoff and real macOS checks still await user acceptance.
+confirmed the typed Y is visible and one Enter exits the farewell.
 
 User visually accepted the dashboard and explicitly authorized this checkpoint's
-commit and push on 2026-09-06. Real macOS verification remains the next manual
-check after updating that clone. No production input change is included.
+commit and push on 2026-09-06. It is committed and pushed as `9acd197`
+(`Migrate dashboard to React and refine animated launch experience`). The later
+Mac confirmation closes the remaining manual platform check for this checkpoint.
+No production input change is included. See `ROADMAP.md` for the next work item;
+this migration does not authorize future feature implementation.

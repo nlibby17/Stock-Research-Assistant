@@ -12,11 +12,17 @@ editing repository defaults; each run stores the exact universe used.
 
 Daily adjusted/unadjusted prices and a small set of current fundamental summaries
 come from Yahoo Finance through the open-source `yfinance` client. The adapter is
-isolated so it can be replaced. SEC EDGAR is the preferred primary source for research-agent
-research and the planned structured-fundamental adapter. SQLite is the only durable
-runtime store. Streamlit is a read-only dashboard over the same stored runs.
+isolated so it can be replaced. SEC EDGAR supplies primary-source research and
+isolated structured financial snapshots/shadow comparisons; promotion into ranking
+inputs remains gated. SQLite is the only durable runtime store. React is the default
+read-only dashboard, served by a loopback-only Python adapter over stored runs;
+Streamlit remains an explicit fallback. See `DASHBOARD_REACT.md` for current UI,
+packaging and launcher details.
 
 ## Source assessment (checked 2026-08-26)
+
+This is a dated source assessment, not a live statement of provider plans or terms.
+Recheck relevant official terms before adopting or changing providers.
 
 ### Yahoo Finance through yfinance — selected for V1 screening
 
@@ -74,7 +80,7 @@ provider adapter -> normalized price bars/fundamentals -> SQLite cache
                                       |
                     immutable run + results + config snapshot
                                       |
-                         Markdown report + Streamlit
+                         Markdown report + local React dashboard
                                       |
                          research-agent JSON import
 ```
@@ -131,6 +137,10 @@ score`, 65–74.99 `Above-average relative score`, 55–64.99 `Relative watchlis
 below 55 `Lower relative score`. A security below the overall coverage gate is
 labelled `Insufficient coverage` even if its conditional score is numerically high.
 The top list includes eligible scores of 55+ and caps at 10 without padding.
+
+These are stored model labels. The dashboard uses shorter presentation-only Score
+Tier labels (for example, `Top Tier` and `Upper Tier`); thresholds and scores are
+unchanged.
 
 ## Metric availability
 
@@ -204,9 +214,10 @@ runs remain readable as `legacy_limited` evidence and are never silently backfil
 The authoritative implementation order and acceptance gates are maintained in
 [`ROADMAP.md`](ROADMAP.md). Its approved 2026-09-05 active delivery plan supersedes
 the original broad sequence. Mandatory structural refactoring ended after S3.2.
-The active sequence is bounded SEC discrepancy review and a promotion decision,
-current two-stock/company views, weekly universe proposals, then selected historical
-features as needed. The broader stages below are a scope reference, not prerequisites
+Two-stock/company views are delivered. Weekly universe proposals are the next
+proposed feature; SEC promotion remains deferred pending evidence and approval,
+without blocking independent product work. Selected historical features remain
+optional as needed. The broader stages below are a scope reference, not prerequisites
 for those current views; attribution, outcome tracking, and backtesting are deferred.
 
 The high-level stages are:
@@ -214,8 +225,9 @@ The high-level stages are:
 1. **V1 foundation — complete:** provider/cache, normalized schema, metrics,
    versioned scores, CLI, report, dashboard, research import, and tests.
 2. **Data hardening — in progress:** SEC identity, submissions, and Company Facts
-   are complete. Next are financial-period derivation, shadow provider comparison,
-   controlled model promotion, and review-only dated universe proposals.
+   and financial-period derivation are complete. Shadow comparison infrastructure
+   is implemented; its evidence/review gate remains open. Controlled model promotion
+   is deferred, and review-only dated universe proposals are planned.
 3. **Historical intelligence:** record-integrity checks, deterministic run
    comparisons, evidence-based change attribution, prospective outcome tracking,
    and historical views. This stage is independently useful without backtesting.
@@ -289,10 +301,10 @@ Completed structured-fact layer:
   coverage and provider-health reporting.
 
 Company Facts are intentionally not ranking inputs yet. Step 2.4A now derives
-comparable financial periods and transparent local calculations. Step 2.4B will
-compare those results with existing Yahoo summaries in shadow mode, and Step 2.4C
-will define precedence and fallbacks and quantify ranking changes before any model
-promotion.
+comparable financial periods and transparent local calculations. Step 2.4B compares
+those results with existing Yahoo summaries in shadow mode. If selected later,
+Step 2.4C must define precedence and fallbacks and quantify ranking changes before
+any model promotion.
 
 ### Step 2.4A status: financial snapshots and calculation lineage
 

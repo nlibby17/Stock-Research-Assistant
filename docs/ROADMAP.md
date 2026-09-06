@@ -9,6 +9,27 @@ reliability, maintainability, useful analysis, and then convenience. No step may
 connect to a brokerage or execute a trade. Paid services, public deployment,
 background automation, or OpenAI API integration require separate user approval.
 
+## Current checkpoint / next-session handoff — 2026-09-06
+
+- React dashboard and terminal farewell are accepted, committed and pushed in
+  `9acd197` (`Migrate dashboard to React and refine animated launch experience`).
+  The user reports flawless operation on their Mac. Hosted CI passed; detailed
+  verification and feature placement are in `DASHBOARD_REACT.md`.
+- Two-stock comparison and existing-evidence company details are delivered.
+  **Next proposed product work is bounded weekly universe discovery (2.5)**,
+  subject to the user's next go-ahead. Run discovery weekly when due during
+  user-started `morning`; additions/removals/replacements remain proposals requiring
+  approval, never automatic changes to the active universe.
+- Keep production inputs unchanged. SEC promotion remains deferred behind its
+  evidence/review/approval gate, but does not block independent product work.
+  Check the installation's evidence counter when resuming that review; do not
+  assume a fixed number of remaining dates or generate reports just to fill it.
+- Mandatory structural refactoring remains closed after S3.2. Do not resume the
+  canceled campaign or start historical/backtesting infrastructure by default.
+- In a new session, read the governing docs and inspect Git status and HEAD first.
+  The Markdown cleanup following this checkpoint is separate from `9acd197`;
+  verify whether it is committed rather than assuming a clean working tree.
+
 ## Active delivery plan — approved 2026-09-05
 
 This revision supersedes the older mandatory sequencing below. Numbered sections
@@ -27,12 +48,12 @@ Deliver in this order:
    outcome. Required evidence and explicit approval still precede any scored-data or
    model change. Review inconsistent SEC selection only where this work needs it;
    no broad S3.3 extraction is a prerequisite.
-2. **Two-stock comparison and useful company details (reduced 3.5).** Compare two
+2. **Two-stock comparison and useful company details (reduced 3.5) — delivered.** Compare two
    current eligible top candidates using stored scores, components, coverage, metrics,
    source dates, and research. Build company details from existing stored evidence.
    Reuse current score breakdowns; add tested calculation helpers only for actual
    gaps. Historical attribution and outcome tracking are not prerequisites.
-3. **Weekly universe proposals (bounded 2.5).** When due during a user-started
+3. **Weekly universe proposals (bounded 2.5) — next proposed feature.** When due during a user-started
    `morning` workflow, discover candidates within a documented supported security
    scope and produce dated additions/removals with reasons and warnings. Record the
    last successful discovery so daily runs do not repeat the weekly work. No separate
@@ -60,27 +81,29 @@ service, deployment, or blanket implementation/commit of every future feature.
 
 ### Evidence-proportional implementation guardrail
 
-Delivery update (2026-09-05): the two-stock VS slice of reduced 3.5 is implemented
-and awaiting user visual review. It compares eligible top candidates from the same
+Delivery update (2026-09-05): the two-stock VS slice of reduced 3.5 was implemented,
+visually accepted and pushed in `0f5eb7a`. It compares eligible top candidates from the same
 stored report, with score/coverage, metric/date, and research/source tabs. Missing
 data remains explicit; it does not rescore stocks or change production inputs.
-Standalone company details and weekly universe proposals are not part of this slice.
+Weekly universe proposals were not part of this slice. The subsequent React
+Research view presents company details from existing stored evidence.
 
 Delivery update (2026-09-06): user approved a presentation-only React migration
 for in-place navigation, pointer-reactive square sector cards, vertical stock
 comparison charts, numbered research selection, and visibility-triggered animation.
 React now backs the launcher with a prebuilt local bundle; the unchanged Streamlit
-renderer remains an explicit fallback through visual/cross-platform acceptance.
+renderer remains an explicit fallback. The finished migration is accepted and
+pushed in `9acd197`; the user reports successful Mac operation and hosted CI passed.
 The independently written terminal horizon farewell resizes and waits for Y + Enter.
-Implementation details and remaining manual acceptance are in `DASHBOARD_REACT.md`.
+Implementation details and verification are in `DASHBOARD_REACT.md`.
 No scoring, SEC promotion, universe activation, or future roadmap work is included.
-Weekly discovery remains due during user-started `morning`; replacements remain
-proposals requiring approval.
+Weekly discovery is still planned, not implemented: it will run when due during
+user-started `morning`; replacements remain proposals requiring approval.
 
 As of 2026-09-02, the application's stored history is still small: roughly tens of
 runs spanning only about four to five market dates, with one primary user and one
-other user who has generated a single report. Treat this as the current planning
-reality, not as a mature multi-user or multi-year dataset.
+other user who had generated a single report. This is a dated planning snapshot,
+not a live inventory. Do not assume a mature multi-user or multi-year dataset.
 
 Do not build infrastructure merely for hypothetical scale, long historical coverage,
 or legacy installations that do not exist. Each substantial abstraction, migration,
@@ -124,7 +147,7 @@ Two small cross-platform conveniences should be implemented as separate reviewed
 substeps before the refactoring program begins:
 
 1. **Automatic browser opening — complete.** After `stockrank morning` completes successfully and
-   starts the local dashboard, Streamlit should open `http://localhost:8765` in the
+   starts the local dashboard, the default renderer opens `http://localhost:8765` in the
    user's default browser. Failure to open a browser must not terminate the dashboard;
    the terminal must still display the local URL as a fallback. Preserve the existing
    terminal lifetime and Windows/macOS shutdown instructions.
@@ -213,7 +236,8 @@ raised.
      breaking, and retain all earlier model versions unchanged. Schema version 10
      stores explicit eligibility reasons while upgrading older rows to an empty
      legacy-compatible value.
-   - **6B — dashboard clarity and appearance — complete.** Use `Score Tier` with a concise
+   - **6B — dashboard clarity and appearance — complete (original Streamlit delivery;
+     React presentation is now described in `DASHBOARD_REACT.md`).** Use `Score Tier` with a concise
      tooltip; add compact three-month sector-leader cards based on a tested median
      calculation within the selected universe; clarify candidate thresholds; move
      technical run metadata into a collapsed detail area; rename profile to ranking

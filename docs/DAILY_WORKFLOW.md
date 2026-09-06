@@ -154,7 +154,9 @@ or complete the later historical-analysis roadmap. Keep the launching terminal o
 stop the server with Ctrl+C on Windows or Control+C (⌃C) on macOS. Closing the browser
 tab alone does not stop it. After server shutdown, the terminal-sized horizon
 animation continues until Y + Enter at `Close terminal? [y/n]`; N keeps it running.
-The text `thank you goodbye` remains stationary. Redirected output uses a nonblocking
+The blue-to-white upper/lower horizon resizes automatically; the text
+`thank you goodbye` remains stationary and the typed Y/N stays visible. There is
+no second success prompt in the current launcher. Redirected output uses a nonblocking
 static version. A manual command returns to its shell; the double-click launcher
 exits its process (macOS may retain a finished window under its terminal settings).
 

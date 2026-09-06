@@ -99,7 +99,10 @@ not use Extra High when High is sufficient.
   explicit user approval.
 - Store metric-level source, period, availability, calculation-version, fallback,
   and quality lineage before beginning historical attribution.
-- Universe maintenance creates dated proposals only. Never activate a proposed
+- Planned universe discovery runs weekly when due during a user-started `morning`,
+  recording the last successful discovery; it is not implemented yet and needs no
+  separate background scheduler. Universe maintenance creates dated proposals only.
+  Additions, removals, and replacements require approval; never activate a proposed
   universe automatically or rewrite membership in historical runs.
 - Label current-universe historical replay as survivorship-biased. Do not call it a
   survivorship-aware backtest without adequate historical membership, delisting,

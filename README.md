@@ -9,8 +9,8 @@ a browser dashboard. It does not connect to a broker or place trades.
 
 ![Dashboard overview showing run status, ranking configuration, and market overview](docs/images/dashboard-overview.jpg)
 
-*Screenshots show the retained Streamlit fallback. React screenshots will follow
-visual acceptance of the new layout.*
+*These screenshots show the retained Streamlit fallback, not the current React
+layout. See [Dashboard](#dashboard) for the current interface.*
 
 ## What it does
 
@@ -18,7 +18,7 @@ visual acceptance of the new layout.*
   risk metrics.
 - Shows score composition, data coverage, market context, sector leaders, SEC
   filings, and source-aware research details.
-- Compares two eligible top candidates in **Stock VS**, with interactive selectors
+- Compares two eligible top candidates in **Stock Comparison**, with interactive selectors
   and tabs for stored scores, key metrics, and same-report research and sources.
 - Uses local SQLite history so reports remain reproducible and comparable.
 - Supports personal ranking profiles and custom ticker universes on each computer.
