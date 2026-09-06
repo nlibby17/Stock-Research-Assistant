@@ -33,7 +33,7 @@ def horizon_frame(columns: int, rows: int, phase: float) -> list[str]:
                 lateral = (x - center) / distance
                 # Groups of glyphs grow toward the viewer and shrink to the
                 # horizon. A narrow gap between blocks keeps the density legible.
-                texel = math.floor((lateral - direction * phase * 1.5) * 4)
+                texel = math.floor((lateral - direction * phase * 2.1) * 4)
                 block, cell = divmod(texel, 18)
                 tile = TEXTURE_TILES[(block + band) % len(TEXTURE_TILES)]
                 glyph = tile[(cell + band * 3) % len(tile)] if cell < 16 else " "

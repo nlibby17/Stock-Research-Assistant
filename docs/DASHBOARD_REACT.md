@@ -3,6 +3,19 @@
 Approved presentation migration, 2026-09-06. No scoring, providers, schema,
 production universe, SEC promotion or weekly-discovery behavior changes.
 
+Latest presentation follow-up (user approved for commit/push): VS score, Coverage, and key-metric
+panels and Research score/chart panels reuse Market Overview's gold treatment.
+VS Coverage is expandable and initially collapsed. Sector borders are permanently
+highlighted without hover changes; Research info cards no longer highlight on hover.
+Home navigation cards have a permanent subtle gold tint and aligned icon/title
+positions. A shared crossed-swords SVG replaces the Stock Comparison navigation
+text icon in Home and the sidebar. Verified with 14 frontend tests, rebuilt assets,
+and browser checks of alignment, panels, and Coverage expansion.
+Review correction: both navigation locations share complete crossed-sword geometry
+with a clear blade overlap. Farewell motion is a further 40% faster than the
+previously accepted 1.5-speed texture, with direction and exit behavior unchanged;
+all 13 farewell tests pass. The user accepted these follow-up changes before authorizing commit/push.
+
 Presentation follow-up, 2026-09-06 (user reviewed and approved for commit/push): Home
 sector cards are compact rectangles with stationary hover highlighting. Navigation
 card icons and text are larger; corner arrows retain their size. Market Overview

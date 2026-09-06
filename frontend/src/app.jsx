@@ -15,12 +15,22 @@ import "./style.css";
 const pages = [
   ["home", "Home", "home"],
   ["candidates", "Top Candidates", "chart"],
-  ["comparison", "Stock Comparison", "VS"],
+  ["comparison", "Stock Comparison", "duel"],
   ["research", "Research", "flask"],
   ["advanced", "Advanced", "Adv"],
 ];
 function Icon({ name }) {
   const paths = {
+    duel: (
+      <>
+        <g strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 3 17 4 7 14 10 17 20 7Z" />
+          <path d="m5 13 6 6m-3-3-5 5" />
+          <path d="M3 3 7 4 17 14 14 17 4 7Z" fill="var(--panel)" />
+          <path d="m13 19 6-6m-3 3 5 5" />
+        </g>
+      </>
+    ),
     home: (
       <>
         <path d="m3 11 9-8 9 8" />
@@ -161,11 +171,11 @@ function DataTable({ rows, columns, caption, className = "" }) {
 function Json({ value }) {
   return <pre className="json">{JSON.stringify(value, null, 2)}</pre>;
 }
-function Disclosure({ title, children, open = false }) {
+function Disclosure({ title, children, open = false, className = "" }) {
   const [expanded, setExpanded] = useState(open);
   return (
     <details
-      className="disclosure"
+      className={"disclosure " + className}
       open={expanded}
       onToggle={(event) => {
         if (event.target === event.currentTarget)
@@ -269,6 +279,7 @@ function Bars({
   colors = ["gold"],
   title = "Score comparison",
   rankedGold = false,
+  goldPanel = false,
   compact = false,
 }) {
   const [ref, visible] = useVisible();
@@ -298,7 +309,7 @@ function Bars({
       className={
         "chart " +
         (compact ? "compact-chart " : "") +
-        (rankedGold ? "gold-panel " : "") +
+        (rankedGold || goldPanel ? "gold-panel " : "") +
         (visible ? "is-visible" : "")
       }
       aria-label={title}
@@ -841,6 +852,7 @@ function Comparison({ data }) {
         <>
           <Bars
             key="compare-factors"
+            goldPanel
             title="Component scores side by side"
             series={pair.map((r) => r.ticker)}
             colors={["gold", "violet"]}
@@ -850,28 +862,31 @@ function Comparison({ data }) {
               coverage: pair.map((r) => r.component_coverage[f]),
             }))}
           />
-          <div className="comparison-table">
-            <DataTable
-              rows={factors.map((f) => ({
-                factor: label(f),
-                left: pair[0].component_coverage[f],
-                right: pair[1].component_coverage[f],
-              }))}
-              columns={[
-                { key: "factor", title: "Coverage" },
-                {
-                  key: "left",
-                  title: pair[0].ticker,
-                  render: (r) => percent(r.left, 0),
-                },
-                {
-                  key: "right",
-                  title: pair[1].ticker,
-                  render: (r) => percent(r.right, 0),
-                },
-              ]}
-            />
-          </div>
+          <Disclosure title="Coverage" className="gold-panel">
+            <div className="comparison-table">
+              <DataTable
+                className="gold-panel"
+                rows={factors.map((f) => ({
+                  factor: label(f),
+                  left: pair[0].component_coverage[f],
+                  right: pair[1].component_coverage[f],
+                }))}
+                columns={[
+                  { key: "factor", title: "Coverage" },
+                  {
+                    key: "left",
+                    title: pair[0].ticker,
+                    render: (r) => percent(r.left, 0),
+                  },
+                  {
+                    key: "right",
+                    title: pair[1].ticker,
+                    render: (r) => percent(r.right, 0),
+                  },
+                ]}
+              />
+            </div>
+          </Disclosure>
           <p className="muted small">
             Higher risk scores mean a more favorable risk profile. Missing
             scores have no bar; unavailable values are not zero.
@@ -882,6 +897,7 @@ function Comparison({ data }) {
         <>
           <div className="comparison-table">
             <DataTable
+              className="gold-panel"
               rows={[
                 {
                   measure: "Latest price",
@@ -1022,6 +1038,7 @@ function Research({ data }) {
               </div>
               <Bars
                 compact
+                goldPanel
                 groups={factors.map((f) => ({
                   label: label(f),
                   values: [r.component_scores[f]],
@@ -1029,6 +1046,7 @@ function Research({ data }) {
                 }))}
               />
               <DataTable
+                className="gold-panel"
                 rows={factors.map((f) => ({
                   factor: label(f),
                   score: number(r.component_scores[f]),

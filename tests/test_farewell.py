@@ -72,8 +72,8 @@ def test_both_halves_animate_and_color_fades_toward_white():
 def test_planes_slide_in_opposite_directions_around_fixed_horizon():
     first = farewell.horizon_frame(119, 37, 0)
     second = farewell.horizon_frame(119, 37, 1)
-    # At ten rows from center, texture now travels fifteen columns per second.
-    for before, after in [(first[8][:-15], second[8][15:]), (first[28][15:], second[28][:-15])]:
+    # At ten rows from center, texture travels twenty-one columns per second.
+    for before, after in [(first[8][:-21], second[8][21:]), (first[28][21:], second[28][:-21])]:
         assert sum(a == b for a, b in zip(before, after)) / len(before) > 0.95
     assert second[18] == first[18]
     assert second[8] != first[8]
