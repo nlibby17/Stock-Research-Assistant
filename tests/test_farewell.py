@@ -1,5 +1,6 @@
 import io
 import os
+from contextlib import contextmanager
 
 import pytest
 
@@ -48,8 +49,65 @@ def test_animation_resizes_and_n_continues_until_y_enter():
 
 def test_animation_restores_terminal_on_interrupt():
     output = io.StringIO()
-    farewell.run_animation(lambda: "\x03", output=output)
+    assert farewell.run_animation(lambda: "\x03", output=output) is False
     assert "\x1b[?25h" in output.getvalue()
+
+
+def test_y_enter_is_explicit_close_confirmation():
+    keys = iter(["n", "\r", "y", "\r"])
+    assert (
+        farewell.run_animation(lambda: next(keys), output=io.StringIO(), sleep=lambda _: None)
+        is True
+    )
+
+
+@pytest.mark.parametrize("confirmed", [True, False])
+def test_only_confirmed_farewell_requests_window_close(monkeypatch, confirmed):
+    @contextmanager
+    def keys():
+        yield lambda: ""
+
+    monkeypatch.setattr(farewell.sys.stdin, "isatty", lambda: True)
+    monkeypatch.setattr(farewell.sys.stdout, "isatty", lambda: True)
+    monkeypatch.delenv("CI", raising=False)
+    monkeypatch.setenv("TERM", "xterm-256color")
+    monkeypatch.setattr(farewell, "terminal_keys", keys)
+    monkeypatch.setattr(farewell, "run_animation", lambda _: confirmed)
+    calls = []
+    monkeypatch.setattr(farewell, "close_launcher_terminal", lambda: calls.append(True))
+    farewell.show_farewell()
+    assert calls == ([True] if confirmed else [])
+
+
+@pytest.mark.parametrize(
+    "desktop,platform,program,expected",
+    [
+        ("1", "darwin", "Apple_Terminal", 1),
+        ("", "darwin", "Apple_Terminal", 0),
+        ("1", "win32", "Apple_Terminal", 0),
+        ("1", "darwin", "iTerm.app", 0),
+    ],
+)
+def test_close_targets_only_own_apple_terminal_launcher(
+    monkeypatch, desktop, platform, program, expected
+):
+    monkeypatch.setattr(farewell.sys, "platform", platform)
+    monkeypatch.setenv("STOCKRANK_DESKTOP_LAUNCHER", desktop)
+    monkeypatch.setenv("TERM_PROGRAM", program)
+    monkeypatch.setattr(farewell.sys.stdin, "isatty", lambda: True)
+    monkeypatch.setattr(farewell.sys.stdin, "fileno", lambda: 0)
+    monkeypatch.setattr(farewell.os, "ttyname", lambda _: "/dev/ttys042", raising=False)
+    calls = []
+    monkeypatch.setattr(farewell.subprocess, "Popen", lambda *a, **kw: calls.append((a, kw)))
+    farewell.close_launcher_terminal()
+    assert len(calls) == expected
+    if expected:
+        command = calls[0][0][0]
+        assert command[-1] == "/dev/ttys042"
+        assert "count of tabs of candidate) is 1" in command[2]
+        assert "if not busy of targetTab" in command[2]
+        assert "front window" not in command[2]
+        assert calls[0][1]["start_new_session"] is True
 
 
 def test_redirected_farewell_does_not_read_input(monkeypatch, capsys):

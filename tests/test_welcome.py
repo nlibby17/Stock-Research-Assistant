@@ -13,6 +13,7 @@ def plain(frame):
 
 
 def test_line_reveals_left_to_right_and_loops_without_changing_labels():
+    assert workflow.WELCOME_GREEN == "\x1b[38;5;41m"
     original = workflow.WELCOME_ART.splitlines()
     width = workflow.WELCOME_LINE_END - workflow.WELCOME_LINE_START
     for step in range(width + 1):

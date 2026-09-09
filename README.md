@@ -113,8 +113,8 @@ After stopping the server, an original horizon animation displays **thank you
 goodbye**, fits the terminal, and continues until **Y + Enter** at **Close terminal?
 [y/n]**. **N + Enter** continues; Ctrl+C also exits the farewell. Unsupported
 terminals receive a static version; redirected output never blocks. Y exits the
-launcher process, not an unrelated terminal. macOS may retain its finished window
-depending on its existing terminal preferences.
+launcher process. On macOS, the desktop launcher also closes its own single-tab
+Apple Terminal window after Y + Enter; manually started commands return to their shell.
 See [frontend development and verification](docs/DASHBOARD_REACT.md).
 
 ![Expanded Research Summary for one candidate showing score, coverage, factors, and research tabs](docs/images/dashboard-research-summary.jpg)

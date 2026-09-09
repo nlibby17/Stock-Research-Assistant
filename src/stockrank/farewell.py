@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import os
 import shutil
+import subprocess
 import sys
 import time
 from contextlib import contextmanager
@@ -103,12 +104,13 @@ def terminal_keys():
 
 def run_animation(
     read_key, *, size=shutil.get_terminal_size, sleep=time.sleep, output=None
-) -> None:
+) -> bool:
     """Animate until an explicit Y + Enter; N continues. Dependencies allow deterministic tests."""
     output = output or sys.stdout
     started = time.monotonic()
     answer = ""
     previous_size = None
+    confirmed = False
     output.write("\x1b[?1049h\x1b[?25l")
     try:
         while True:
@@ -117,6 +119,7 @@ def run_animation(
                 break
             if key in ("\r", "\n"):
                 if answer.lower() == "y":
+                    confirmed = True
                     break
                 answer = ""
             elif key.lower() in ("y", "n"):
@@ -146,6 +149,50 @@ def run_animation(
     finally:
         output.write("\x1b[0m\x1b[?25h\x1b[?1049l")
         output.flush()
+    return confirmed
+
+
+def close_launcher_terminal() -> None:
+    """After launcher exit, close only its idle, single-tab Apple Terminal window."""
+    if (
+        sys.platform != "darwin"
+        or os.environ.get("STOCKRANK_DESKTOP_LAUNCHER") != "1"
+        or os.environ.get("TERM_PROGRAM") != "Apple_Terminal"
+        or not sys.stdin.isatty()
+    ):
+        return
+    try:
+        terminal = os.ttyname(sys.stdin.fileno())
+        # Wait for the launcher shell to exit before closing, avoiding Terminal's
+        # running-process confirmation. Never target the front/active window.
+        script = """on run argv
+    set targetTTY to item 1 of argv
+    repeat 60 times
+        tell application id "com.apple.Terminal"
+            repeat with candidate in windows
+                if (count of tabs of candidate) is 1 then
+                    set targetTab to first tab of candidate
+                    if tty of targetTab is targetTTY then
+                        if not busy of targetTab then
+                            close candidate saving no
+                            return
+                        end if
+                    end if
+                end if
+            end repeat
+        end tell
+        delay 0.5
+    end repeat
+end run"""
+        subprocess.Popen(
+            ["/usr/bin/osascript", "-e", script, terminal],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=None,
+            start_new_session=True,
+        )
+    except OSError:
+        print("Automatic Terminal close unavailable; you can close this window manually.")
 
 
 def show_farewell() -> None:
@@ -154,8 +201,10 @@ def show_farewell() -> None:
     if interactive and os.environ.get("TERM") != "dumb":
         try:
             with terminal_keys() as read_key:
-                run_animation(read_key)
+                confirmed = run_animation(read_key)
             print(MESSAGE)
+            if confirmed:
+                close_launcher_terminal()
             return
         except (OSError, ValueError):
             pass
@@ -164,6 +213,7 @@ def show_farewell() -> None:
         try:
             while input("Close terminal? [y/n] ").strip().lower() != "y":
                 pass
+            close_launcher_terminal()
         except (EOFError, KeyboardInterrupt):
             pass
 

@@ -158,7 +158,8 @@ The blue-to-white upper/lower horizon resizes automatically; the text
 `thank you goodbye` remains stationary and the typed Y/N stays visible. There is
 no second success prompt in the current launcher. Redirected output uses a nonblocking
 static version. A manual command returns to its shell; the double-click launcher
-exits its process (macOS may retain a finished window under its terminal settings).
+exits its process. After Y + Enter, the macOS desktop launcher also closes its own
+single-tab Apple Terminal window. Other windows and multi-tab windows remain open.
 
 React is the default; use `stockrank dashboard --ui streamlit` for the retained
 fallback. No Node.js installation or frontend build is required for normal use.

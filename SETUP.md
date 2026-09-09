@@ -151,7 +151,9 @@ and automatically fits the terminal. At **Close terminal? [y/n]**, type **Y** an
 press **Enter/Return** to exit, or **N** and Enter/Return to keep it running. Your
 typed choice is visible; Ctrl+C also exits the animation. There is no second
 success confirmation. A manually started command returns to its existing shell;
-macOS Terminal may retain the finished window according to its own preferences.
+the macOS desktop launcher closes its own single-tab Apple Terminal window after
+Y + Return. If macOS requests permission to control Terminal, allow it for automatic
+closing. Windows containing additional tabs are left open to preserve other sessions.
 Unsupported terminals use a static farewell; redirected output never waits.
 
 ### Open the existing report without a new run

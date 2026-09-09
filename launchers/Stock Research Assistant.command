@@ -20,7 +20,7 @@ if [[ ! -x "$stockrank_executable" ]]; then
     exit 1
 fi
 
-"$stockrank_executable" morning
+STOCKRANK_DESKTOP_LAUNCHER=1 "$stockrank_executable" morning
 stockrank_exit=$?
 if ((stockrank_exit != 0)); then
     echo

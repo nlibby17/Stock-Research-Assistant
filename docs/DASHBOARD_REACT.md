@@ -105,7 +105,8 @@ CI verifies views and checks that rebuilding produces no bundle changes.
 ## Terminal farewell
 
 While the dashboard runs, the welcome banner's small stock line draws left to
-right in green (`#22C55E`), revealing one column every 0.5 seconds and looping.
+right in indexed green (ANSI palette color 41, compatible with older Apple Terminal),
+revealing one column every 0.5 seconds and looping.
 Its axes and message stay stationary. Ctrl+C stops the dashboard and proceeds to
 the existing farewell. Redirected output, CI, unsupported terminals, and small
 windows use static welcome art; shrinking below 65 columns or eight rows stops
@@ -130,8 +131,13 @@ Animation uses an alternate screen so earlier report messages remain recoverable
 TTY/ANSI-capable Windows and POSIX terminals animate. Unsupported consoles use a
 compact static horizon; redirected/CI output never waits for input. The launcher
 no longer adds a second success pause. Y exits the launcher process; it cannot
-force-close an unrelated parent shell. macOS may retain its finished window based
-on existing terminal preferences. Closing a window with its X button cannot reliably
+force-close an unrelated parent shell. The macOS desktop launcher sets a per-process
+marker; only an explicit Y + Enter schedules closing its matching single-tab Apple
+Terminal window. The helper matches the terminal device and waits until the launcher
+exits before closing, leaving unrelated windows and multi-tab windows alone. macOS
+may request permission to control Terminal; automatic closing requires that permission.
+Manual CLI sessions and Ctrl+C exits from the farewell do not request window closure.
+Closing a window with its X button cannot reliably
 play a farewell after the window is gone; use Ctrl+C to stop the dashboard first.
 
 On Windows, the compatibility `.cmd` wrapper starts `stockrank.desktop_launcher`

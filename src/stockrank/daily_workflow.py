@@ -41,7 +41,8 @@ WELCOME_ART = r"""
 
 GOODBYE_ART = "\n".join(horizon_frame(62, 11, 0))
 
-WELCOME_GREEN = "\x1b[38;2;34;197;94m"
+# Indexed green works in older Apple Terminal versions without true-color support.
+WELCOME_GREEN = "\x1b[38;5;41m"
 WELCOME_STEP_SECONDS = 0.5
 WELCOME_LINE_START = 6
 WELCOME_LINE_END = 26
