@@ -11,7 +11,8 @@ from stockrank.storage import Storage
 
 
 def test_versioned_universe_has_50_unique_stocks_and_all_sectors():
-    settings = load_settings(Path.cwd())
+    root = Path(__file__).resolve().parents[1]
+    settings = load_settings(root, config_path=root / "config/preferences.toml")
     assert settings.raw["universe"]["name"] == "us_diversified_50_v1"
     assert len(settings.universe) == 50
     assert len({security.ticker for security in settings.universe}) == 50
@@ -38,9 +39,10 @@ def test_demo_pipeline_end_to_end(tmp_path):
     assert run_id in text
     assert "demo-synthetic" in text
     assert "SYNTHETIC" in " ".join(warnings).upper()
-    assert warnings.count(
-        "Explicit demo mode: every value is synthetic and unsuitable for investing"
-    ) == 1
+    assert (
+        warnings.count("Explicit demo mode: every value is synthetic and unsuitable for investing")
+        == 1
+    )
     storage = Storage(settings.database_path)
     run = storage.latest_run()
     assert run["status"] == "completed"
@@ -248,6 +250,5 @@ def test_pipeline_records_price_series_gap_and_reduces_metric_coverage(tmp_path,
     assert results["B"]["metric_scores"]["momentum_1m"] is None
     assert any("continuity gaps reduced" in warning for warning in warnings)
     assert any(
-        "Missing 1 expected trading session" in warning
-        for warning in results["A"]["warnings"]
+        "Missing 1 expected trading session" in warning for warning in results["A"]["warnings"]
     )

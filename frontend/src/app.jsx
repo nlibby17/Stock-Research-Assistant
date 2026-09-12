@@ -1491,6 +1491,21 @@ function App() {
                 SYNTHETIC DEMO DATA — do not use for investment decisions
               </Notice>
             )}
+            {data.workflow_warnings?.length > 0 && (
+              <Notice tone="warning">
+                <strong>Rankings ready — SEC checks need attention</strong>
+                <p>
+                  Your stock rankings passed validation. Some additional SEC
+                  data is incomplete; it has not been substituted into your
+                  scores.
+                </p>
+                <ul>
+                  {data.workflow_warnings.map((warning, index) => (
+                    <li key={index}>{warning}</li>
+                  ))}
+                </ul>
+              </Notice>
+            )}
             {data.configuration_mismatches.length > 0 && (
               <Notice>
                 Saved report notice: active configuration differs (

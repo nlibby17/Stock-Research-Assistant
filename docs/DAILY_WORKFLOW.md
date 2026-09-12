@@ -46,13 +46,14 @@ or calculation path is introduced by the launcher.
 
 This performs, in order:
 
-1. SEC identity and provider health validation.
-2. SEC 10-K/10-Q filing metadata synchronization.
-3. SEC Company Facts synchronization.
-4. Local SEC financial snapshot construction.
-5. Yahoo-backed production ranking and base-report generation.
-6. Isolated SEC/Yahoo shadow comparison.
-7. Final run validation.
+1. Local configuration validation.
+2. SEC identity and provider health validation.
+3. SEC 10-K/10-Q filing metadata synchronization.
+4. SEC Company Facts synchronization.
+5. Local SEC financial snapshot construction.
+6. Yahoo-backed production ranking and base-report generation.
+7. Isolated SEC/Yahoo shadow comparison.
+8. Final run validation.
 
 The Company Facts step does not redownload all 50 companies merely because its raw
 six-hour response cache has expired. It compares the current relevant filing set
@@ -113,10 +114,21 @@ recorded and are not reconstructed after the fact.
 
 ## Optional current-source research phase
 
-Planned universe discovery is separate from today's implemented workflow: once
-delivered, it will run weekly when due during `morning` and generate dated proposals.
-It will not activate additions or replacements without user approval. See the active
-delivery plan in `ROADMAP.md`; no background scheduling is implied.
+`morning` first checks whether weekly universe discovery is due, before the eight
+report steps. If due, confirmation of approval or rejection starts those steps once,
+using the new or unchanged list respectively. It saves dated **Best overall** and **Diversified** proposals without changing
+active membership. Discovery problems are reported separately and do not stop the
+report and dashboard. A failed or blocked discovery remains due for retry.
+`daily-report` alone does not perform discovery, and `--force` does not bypass the
+weekly interval. `stockrank universe-preview --open` runs discovery immediately
+without advancing that interval. See [discovery and testing](UNIVERSE_DISCOVERY.md)
+for profile selection, review, approval, and rejection. No background scheduling is
+introduced.
+Browser approval or rejection builds a fresh deterministic report for the selected list and
+opens its dashboard after validation. Keep choices and manual edits are reviewed
+before activation, with a hard cap of 100 stocks. Candidate refreshes and retries
+are available from the review page. AI research still follows the separate phase
+below; the post-approval report does not claim that research has been imported.
 
 The deterministic phase writes `runtime/reports/research_template.json`. A person
 or AI research agent may complete it using current sources, then run:

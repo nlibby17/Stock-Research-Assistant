@@ -98,6 +98,17 @@ def _read_dashboard(storage, settings):
     if not run:
         return {"run": None, "app_version": APP_VERSION}
     run_id = run["run_id"]
+    workflow_warnings = []
+    status_path = settings.runtime_dir / "universe" / f"report-status-{run_id}.json"
+    if status_path.exists():
+        try:
+            workflow_status = json.loads(status_path.read_text(encoding="utf-8"))
+            if workflow_status.get("run_id") == run_id:
+                workflow_warnings = workflow_status.get("warnings", [])
+        except (OSError, ValueError):
+            workflow_warnings = [
+                "Additional workflow status could not be read. Check the report-build log."
+            ]
     config = json.loads(run["config_json"])
     runtime = config.get("runtime", {})
     preferences = config.get("preferences", {})
@@ -250,6 +261,7 @@ def _read_dashboard(storage, settings):
     return {
         "app_version": APP_VERSION,
         "run": run_public,
+        "workflow_warnings": workflow_warnings,
         "results": results,
         "candidates": candidates,
         "preferences": preferences,

@@ -130,8 +130,18 @@ lower-volatility, or balanced profile and to supply your own tickers. Personal f
 remain local and are ignored by Git, so different computers can use different
 settings safely.
 
-Automatic discovery of a broader stock universe is planned but is not active yet.
-The application never silently adds securities to a user's approved universe.
+Weekly universe discovery runs when due at the start of `morning`, before the
+eight report steps. It
+creates proposals for **Best overall** (highest scores in the screened pool) and
+**Diversified** (sector-balanced company counts). Membership changes require
+explicit approval. Run `stockrank universe-preview --open` to compare both profiles
+immediately without changing membership or the weekly schedule. See
+[universe discovery and testing](docs/UNIVERSE_DISCOVERY.md).
+Use `stockrank universe-review` to reopen the latest saved proposal with visible
+removals and approval/rejection controls. Keep its terminal open while reviewing.
+The review supports persistent keep choices, user-added screening candidates, and
+manual removals, with a hard cap of 100 stocks. Final browser approval or rejection runs the report once for the selected or retained
+list, then opens one dashboard tab; a failed build offers a retry.
 
 ## How it works
 

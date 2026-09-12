@@ -9,15 +9,36 @@ reliability, maintainability, useful analysis, and then convenience. No step may
 connect to a brokerage or execute a trade. Paid services, public deployment,
 background automation, or OpenAI API integration require separate user approval.
 
-## Current checkpoint / next-session handoff — 2026-09-06
+## Current checkpoint / next-session handoff — 2026-09-09
+
+- Universe discovery (bounded 2.5) is user-tested and accepted; the user explicitly
+  authorized committing and pushing this feature after the final launcher test.
+- `morning` checks weekly discovery before the eight report steps. When due, it
+  opens Best overall / Diversified proposals for explicit approval or rejection.
+  Either decision runs the report once for the selected or retained membership,
+  then opens one dashboard tab and starts the existing terminal graph.
+- Review supports persistent protected stocks, additional screening candidates,
+  manual removals and reviewed suggested trims, with a hard 100-stock cap.
+  Approval writes a prospective universe version and receipt transactionally.
+- Weekly approval preserves the discovery timestamp across membership/protection
+  changes. Previews do not advance the timer. Failed discovery remains due and
+  allows reporting for the current list; report failures are visible and retryable.
+- Validated rankings may open with explicit warnings for incomplete auxiliary SEC
+  facts/snapshots/shadow checks. Core failures still block. Missing GEV SEC start-date
+  data remains a visible limitation; it is not fabricated or promoted into rankings.
+- Browser and launcher coordinate dashboard opening to prevent duplicate tabs.
+  Completion is monitored independently of browser refreshes. Report workers and
+  the review server close before the farewell; manual terminals return to the shell.
+- Tests cover simulated weekly boundaries, both decisions, overrides, rollback,
+  one-pass reporting, retries and both dashboard handoff paths. Local settings,
+  live membership, reports and timer-reset test state remain private and unstaged.
 
 - React dashboard and terminal farewell are accepted, committed and pushed in
   `9acd197` (`Migrate dashboard to React and refine animated launch experience`).
   The user reports flawless operation on their Mac. Hosted CI passed; detailed
   verification and feature placement are in `DASHBOARD_REACT.md`.
 - Two-stock comparison and existing-evidence company details are delivered.
-  **Next proposed product work is bounded weekly universe discovery (2.5)**,
-  subject to the user's next go-ahead. Run discovery weekly when due during
+  The universe discovery implementation is now user-accepted. Run discovery weekly when due during
   user-started `morning`; additions/removals/replacements remain proposals requiring
   approval, never automatic changes to the active universe.
 - Keep production inputs unchanged. SEC promotion remains deferred behind its
@@ -53,7 +74,7 @@ Deliver in this order:
    source dates, and research. Build company details from existing stored evidence.
    Reuse current score breakdowns; add tested calculation helpers only for actual
    gaps. Historical attribution and outcome tracking are not prerequisites.
-3. **Weekly universe proposals (bounded 2.5) — next proposed feature.** When due during a user-started
+3. **Weekly universe proposals (bounded 2.5) — implemented and user-accepted.** When due during a user-started
    `morning` workflow, discover candidates within a documented supported security
    scope and produce dated additions/removals with reasons and warnings. Record the
    last successful discovery so daily runs do not repeat the weekly work. No separate
@@ -97,8 +118,9 @@ pushed in `9acd197`; the user reports successful Mac operation and hosted CI pas
 The independently written terminal horizon farewell resizes and waits for Y + Enter.
 Implementation details and verification are in `DASHBOARD_REACT.md`.
 No scoring, SEC promotion, universe activation, or future roadmap work is included.
-Weekly discovery is still planned, not implemented: it will run when due during
-user-started `morning`; replacements remain proposals requiring approval.
+At that September 6 checkpoint discovery was still planned. The September 9 local
+implementation runs when due during user-started `morning`; replacements remain
+proposals requiring approval. User testing is complete and release is authorized.
 
 As of 2026-09-02, the application's stored history is still small: roughly tens of
 runs spanning only about four to five market dates, with one primary user and one

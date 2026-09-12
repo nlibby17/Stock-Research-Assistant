@@ -130,6 +130,7 @@ def run_daily_workflow(
     steps: Sequence[WorkflowStep],
     *,
     load_runtime_settings: Callable[[], RuntimeSettings],
+    step_results: list | None = None,
 ) -> int:
     """Run and time the deterministic workflow assembled by the command layer."""
     workflow_started = time.perf_counter()
@@ -145,6 +146,8 @@ def run_daily_workflow(
             continue
         step_started = time.perf_counter()
         result = int(handler(namespace))
+        if step_results is not None:
+            step_results.append({"step": label, "exit_code": result})
         step_elapsed = human_elapsed(time.perf_counter() - step_started)
         if result:
             failed_steps.append(label)

@@ -22,10 +22,22 @@ exclude_funds = true
 exclude_preferred_shares = true
 exclude_known_pending_delistings = true
 
-[future_automatic_maintenance]
-status = "deferred_until_SEC_and_provider_layer_is_stronger"
-candidate_source = "provider exchange listings joined to SEC ticker/CIK mapping"
-selection_frequency = "monthly"
+[proposal_discovery]
+status = "implemented_user_accepted"
+candidate_source = "bounded Yahoo sector screens joined to Nasdaq Trader listings and SEC identities"
+selection_frequency = "weekly_when_due_before_morning_report"
+profiles = ["best_overall", "diversified"]
+default_profile = "diversified"
+default_target_size = 50
+default_candidates_per_sector = 10
+supported_scope = "Nasdaq, NYSE, NYSE American common/ordinary shares with verified 10-K reporting"
+minimum_completed_sessions = 300
+minimum_price_usd = 5
+minimum_median_dollar_volume_20d_usd = 10000000
+minimum_scoring_coverage = 0.60
+activation = "explicit_user_approval_only"
+approval_expiry_hours = 48
+implementation = "src/stockrank/universe_discovery.py and universe_sources.py; descriptive policy, not an executable override"
 change_control = "write a dated universe version; never rewrite prior run membership"
 required_checks = [
   "active major-exchange listing",
@@ -43,4 +55,4 @@ activation = "previewed and approved by the local user"
 scope = "ranks only supplied tickers; does not discover candidates"
 validation = "local schema/model checks plus optional live Yahoo price and SEC identity coverage"
 history = "new universe identifier applies prospectively; prior runs remain unchanged"
-full_automatic_policy_enforcement = "deferred_to_step_2_5_proposals"
+full_automatic_policy_enforcement = "manual_customization_is_separate_from_bounded_discovery_eligibility"

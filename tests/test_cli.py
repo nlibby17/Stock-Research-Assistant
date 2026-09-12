@@ -503,6 +503,9 @@ def test_parser_exposes_setup_and_daily_commands():
 
 
 def test_morning_runs_report_before_dashboard(monkeypatch, capsys):
+    from stockrank import universe_commands
+
+    monkeypatch.setattr(universe_commands, "run_due_discovery", lambda: None)
     calls = []
 
     def daily(args):
@@ -523,6 +526,9 @@ def test_morning_runs_report_before_dashboard(monkeypatch, capsys):
 
 
 def test_morning_does_not_launch_dashboard_after_report_failure(monkeypatch, capsys):
+    from stockrank import universe_commands
+
+    monkeypatch.setattr(universe_commands, "run_due_discovery", lambda: None)
     monkeypatch.setattr(cli, "command_daily_report", lambda args: 1)
     dashboard_calls = []
     monkeypatch.setattr(cli, "command_dashboard", lambda args: dashboard_calls.append(args) or 0)

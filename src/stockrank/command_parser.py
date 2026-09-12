@@ -4,6 +4,7 @@ import argparse
 from collections.abc import Callable, Mapping
 
 from stockrank.customization import HORIZONS, PROFILE_NAMES, RISK_LEVELS
+from stockrank.universe_commands import add_universe_parsers
 
 CommandHandler = Callable[[argparse.Namespace], int]
 
@@ -14,6 +15,7 @@ def build_command_parser(handlers: Mapping[str, CommandHandler]) -> argparse.Arg
         prog="stockrank", description="Local research-only stock ranking application"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
+    add_universe_parsers(subparsers)
     configure_parser = subparsers.add_parser(
         "configure", help="Create or update this computer's personal profile and universe"
     )

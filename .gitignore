@@ -3,6 +3,7 @@
 !.env.example
 config/preferences.local.toml*
 config/universe.local.csv*
+config/*.local.*
 .venv/
 .venv-backups/
 venv/
