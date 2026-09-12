@@ -62,6 +62,12 @@ The user authorized committing and pushing these planning documents separately.
 The order below is a recommendation for discussion, not a change
 to the approved product sequence or a restart of the closed refactoring campaign.
 
+**Implementation update — 2026-09-12:** The user authorized step 1 (Windows
+installer failure handling). Native-command exit checks and isolated Windows
+PowerShell / PowerShell 7 regression tests passed locally, along with the full
+Python suite and lint checks. The user authorized committing and pushing this
+step; the other workstreams remain planned.
+
 | Suggested order | User item | Verified finding and proposed scope | Acceptance gate for future implementation |
 |---|---|---|---|
 | 1 | #2 Windows installer failures | `scripts/setup.ps1` invokes pip without checking its native exit code. Check Python probing, virtual-environment creation, pip installation, and setup validation at their boundaries. | Simulated failures stop with a useful error and nonzero exit; no success message or launcher creation after failure. Successful setup and rerunning setup remain supported. |
@@ -80,7 +86,7 @@ rewrite now.
 The CLI requirement supersedes earlier advice that treated extraction as conditional
 on another maintenance problem. The implementation method remains deliberate and
 behavior-preserving; the earlier campaign closure does not cancel this newly required
-work. Implementation remains paused under the user's planning-only instruction.
+work. Implementation of the remaining workstreams is still paused.
 
 Dependency order: provider tests precede concurrency; define Python/lock support
 before adding mypy to the managed development environment. Typing and CLI extraction

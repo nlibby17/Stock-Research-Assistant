@@ -37,6 +37,12 @@ The second command places the terminal inside the newly downloaded project folde
 powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
 ```
 
+If Windows setup stops with an error, read the failed step and the error above it,
+resolve the cause, then rerun the same command. Failed Python checks, environment
+creation, dependency installation, or setup validation stop setup without reporting
+success. Rerunning setup reuses the existing environment and preserves `.env` unless
+you explicitly supply a new SEC contact identity.
+
 ### macOS
 
 ```bash

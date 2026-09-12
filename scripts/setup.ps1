@@ -26,6 +26,12 @@ if ($null -ne $pythonLauncher) {
 }
 
 $versionText = & $pythonExecutable @pythonArgs -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+if ($LASTEXITCODE -ne 0) {
+    throw "Python version check failed (exit=$LASTEXITCODE). Repair Python or select a working installation, then rerun setup."
+}
+if ($versionText -notmatch '^\d+\.\d+$') {
+    throw "Python returned an invalid version. Repair Python, then rerun setup."
+}
 $versionParts = $versionText.Split(".")
 if ([int]$versionParts[0] -lt 3 -or ([int]$versionParts[0] -eq 3 -and [int]$versionParts[1] -lt 11)) {
     throw "Python 3.11 or newer is required; found $versionText."
@@ -33,9 +39,18 @@ if ([int]$versionParts[0] -lt 3 -or ([int]$versionParts[0] -eq 3 -and [int]$vers
 
 if (-not (Test-Path -LiteralPath ".venv\Scripts\python.exe")) {
     & $pythonExecutable @pythonArgs -m venv .venv
+    if ($LASTEXITCODE -ne 0) {
+        throw "Python environment creation failed (exit=$LASTEXITCODE). Review the error above, resolve it, and rerun setup."
+    }
+}
+if (-not (Test-Path -LiteralPath ".venv\Scripts\python.exe" -PathType Leaf)) {
+    throw "The local Python environment is incomplete. Repair .venv before rerunning setup."
 }
 
 & ".\.venv\Scripts\python.exe" -m pip install -e ".[dev]"
+if ($LASTEXITCODE -ne 0) {
+    throw "Dependency installation failed (exit=$LASTEXITCODE). Review pip's error above, resolve it, and rerun setup. Installation is not complete."
+}
 
 if (-not (Test-Path -LiteralPath ".env")) {
     Copy-Item -LiteralPath ".env.example" -Destination ".env"
@@ -53,9 +68,9 @@ if ($SecUserAgent.Trim()) {
     }
     Set-Content -LiteralPath ".env" -Value $updated -Encoding utf8
     & ".\.venv\Scripts\stockrank.exe" setup-check
-} else {
-    Write-Host "Installation complete. Edit .env and replace the SEC_USER_AGENT placeholder."
-    Write-Host "Then run: .\.venv\Scripts\stockrank.exe setup-check"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Setup validation failed (exit=$LASTEXITCODE). Correct the reported configuration or provider problem, then rerun setup."
+    }
 }
 
 $installDesktopShortcut = $CreateDesktopShortcut.IsPresent
@@ -80,4 +95,11 @@ if ($installDesktopShortcut) {
 } elseif (-not $SkipDesktopShortcut) {
     Write-Host "Desktop shortcut not created. To add it later, run:"
     Write-Host "powershell -ExecutionPolicy Bypass -File .\scripts\install-launcher.ps1"
+}
+
+if ($SecUserAgent.Trim()) {
+    Write-Host "Installation complete. Setup validation passed."
+} else {
+    Write-Host "Installation complete. Edit .env and replace the SEC_USER_AGENT placeholder."
+    Write-Host "Then run: .\.venv\Scripts\stockrank.exe setup-check"
 }
