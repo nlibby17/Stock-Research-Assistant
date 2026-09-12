@@ -49,6 +49,32 @@ planned, with all replacements proposed for approval before prospective activati
 
 ## Objective
 
+### Bounded future intake — 2026-09-12
+
+The user requested discussion and gameplan entries for a CLI split and a typed
+pipeline/scoring contract, alongside four reliability/performance items. These are
+planning requests, not approval to implement or to reopen the closed campaign.
+See [the seven-item roadmap intake](ROADMAP.md#reliability-and-maintainability-intake--2026-09-12).
+
+- **CLI split: REQUIRED in the future plan (explicit user direction).** Split the
+  1,871-line file into smaller, cohesive command modules with a thin entry point.
+  Readability and the ability to explain the architecture in an interview are
+  explicit acceptance goals. Do not make this conditional on another defect or
+  argue that current functional correctness removes the need. This supersedes
+  earlier conditional/line-count objections for this CLI work specifically.
+  Reuse existing boundaries, map responsibilities and dependencies, then extract
+  in small tested slices. Preserve commands, arguments, output, exit codes and
+  launcher behavior; avoid circular imports, a replacement catch-all module,
+  unnecessary indirection and excessive fragmentation. Document the resulting
+  module map and rationale. The user has not authorized implementation now.
+- **Typed scoring input: MODIFY for planning.** Scope a shared `TypedDict` and mypy
+  checks to the report and discovery producers plus scoring. Preserve missing data,
+  runtime validation, scoring and persistence semantics. Avoid repo-wide annotation
+  changes or hiding unchecked inputs behind casts.
+
+The user must authorize implementation later. These items are not prerequisites
+to unrelated product delivery and do not revive S3.3 through S5.4.
+
 Collect independent recommendations across the application's largest subsystems,
 verify every claim against the repository, and make an explicit decision on every
 proposal before changing production code. No recommendation is accepted merely

@@ -53,6 +53,47 @@ background automation, or OpenAI API integration require separate user approval.
 
 ## Active delivery plan — approved 2026-09-05
 
+### Reliability and maintainability intake — 2026-09-12
+
+The user requested analysis of six future improvements, then added documentation
+and screenshot refresh as a seventh workstream in the gameplan. **Planning only:
+implementation and implementation releases are not authorized by this intake.**
+The user authorized committing and pushing these planning documents separately.
+The order below is a recommendation for discussion, not a change
+to the approved product sequence or a restart of the closed refactoring campaign.
+
+| Suggested order | User item | Verified finding and proposed scope | Acceptance gate for future implementation |
+|---|---|---|---|
+| 1 | #2 Windows installer failures | `scripts/setup.ps1` invokes pip without checking its native exit code. Check Python probing, virtual-environment creation, pip installation, and setup validation at their boundaries. | Simulated failures stop with a useful error and nonzero exit; no success message or launcher creation after failure. Successful setup and rerunning setup remain supported. |
+| 2 | #1 Yahoo provider tests | No direct adapter tests found for `data/yfinance_provider.py`; downstream tests use controlled providers, so do not call overall market-data coverage zero without measurement. Add offline tests around the real adapter with the Yahoo module replaced at its external boundary. | Cover single/multiple ticker response shapes, omitted tickers, empty responses, malformed/missing numbers, adjusted-close behavior, retries, exhausted failures, timestamps, fundamental mappings and warnings. No network or real backoff sleeps in these tests. Existing pipeline freshness/fallback tests remain. |
+| 3 | #5 Reproducible installs and Python support | Python dependencies use version ranges with no Python lockfile; the frontend already has `package-lock.json`. CI tests Python 3.12 on three operating systems. Windows selects `py -3`, not an explicit 3.13 preference. The Mac installer prefers 3.13 on newer macOS and explicitly uses 3.12 for its older-OS compatibility path. | Decide supported Python/OS combinations first. Resolve transitive dependencies for those targets; make installers, update scripts and CI actually consume the chosen lock workflow. Verify clean installs, upgrades, dependency consistency and intentional lock regeneration. Choose tooling during implementation planning; do not treat a freeze of this personal environment as a portable lock. |
+| 4 | #6 Pipeline/scoring contract | `score_universe` accepts `dict[str, dict[str, Any]]`. Both the report pipeline and universe discovery build this input. Define a shared `TypedDict` for the actual boundary and its required/optional fields; introduce scoped mypy checking. | Both producers and scoring pass the check; demonstrate that missing/renamed required keys and incompatible values are caught. Keep runtime validation for external data and nullable metrics. No scoring, serialization or missing-value behavior changes; no blanket `Any`/ignore escapes or repo-wide typing campaign. |
+| 5 | #3 Concurrent fundamentals | The report pipeline refreshes cache misses sequentially; discovery also fetches fundamentals in a per-ticker loop. Batch prices already request Yahoo threading. Measure cold/warm runs before changing scheduling. | After provider tests, prototype a small bounded thread pool for network fetches. Keep SQLite writes and result merging on the owning thread; preserve freshness, fallback, ordering, cancellation and visible progress. Compare serial/concurrent results and timings on 50/100-stock fixtures; test partial failures and throttling. Enable only if measured benefit does not increase errors; start with one caller, not an async rewrite. |
+| 6 | #4 CLI command modules — REQUIRED | The user explicitly requires splitting the 1,871-line CLI for human readability, maintainability and interview presentation. This is a committed planning requirement, not conditional on discovering another defect. Keep a thin CLI entry point and organize command handlers into cohesive modules, reusing existing parser/workflow/universe boundaries. | Deliver a substantially smaller entry point with an understandable module map and clear ownership. Preserve command names, arguments, output, exit codes, desktop entry points and eight-step/single-dashboard behavior. Extract in small tested slices; avoid circular imports, a new giant catch-all module, unnecessary indirection or fragmented one-function files. Document the design so it is easy to explain in an interview. |
+| Cross-cutting | #7 Documentation and screenshots | Audit README, SETUP, daily workflow, dashboard/discovery guides, roadmap and linked images against the released application. README already labels its legacy Streamlit screenshots, but those do not illustrate the default React experience. | Build a findings list; verify every documented command/flag, installer and update path, timing, warning and approval/rejection description. Replace stale images with representative current views and refresh their captions/alt text. Check links and Windows/Mac instructions; exclude private paths, identity details and secrets from images. Capture final screenshots after affected UI work stabilizes and keep historical checkpoints clearly dated. |
+
+Documentation order: audit stale guidance early, update affected instructions with
+each implementation slice, and capture final screenshots against the resulting
+release. This intake does not authorize a screenshot capture or documentation-wide
+rewrite now.
+
+The CLI requirement supersedes earlier advice that treated extraction as conditional
+on another maintenance problem. The implementation method remains deliberate and
+behavior-preserving; the earlier campaign closure does not cancel this newly required
+work. Implementation remains paused under the user's planning-only instruction.
+
+Dependency order: provider tests precede concurrency; define Python/lock support
+before adding mypy to the managed development environment. Typing and CLI extraction
+are separate changes from concurrency so regressions can be attributed. Installer
+exit checks need not wait for lockfile design. No speedup target is promised before
+measurement, and no exact coverage percentage was measured during this inspection.
+
+Reference constraints: [pip repeatable installs](https://pip.pypa.io/en/stable/topics/repeatable-installs/)
+describes pinning transitive dependencies and hash checking. [Python typing](https://docs.python.org/3/library/typing.html#typing.TypedDict)
+does not enforce annotations at runtime; static checks complement provider validation.
+
+### Existing approved product sequence
+
 This revision supersedes the older mandatory sequencing below. Numbered sections
 remain a scope reference, not a requirement to complete every feature. The mandatory
 structural refactoring campaign ends after accepted S3.2 (`81c5dc0`). Future
