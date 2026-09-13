@@ -213,7 +213,7 @@ def collect_evidence(
         if not reasons:
             candidates.append(security)
     progress(f"Checking history for {len(candidates)} supported listings...", flush=True)
-    provider = YFinanceProvider(retries=1)
+    provider = YFinanceProvider(retries=2)
     prices, price_warnings = provider.fetch_prices(
         candidates + [Security("SPY", "Market calendar reference", "")],
         now.date() - timedelta(days=550),
@@ -241,7 +241,12 @@ def collect_evidence(
         bars = assessment.usable_bars if assessment else ()
         if not bars:
             row["exclusions"].append("Fresh completed price history unavailable")
-            errors.append(f"{security.ticker}: price retrieval/freshness needs review")
+            detail = (
+                "; ".join(assessment.warnings) or assessment.status
+                if assessment
+                else "Yahoo price download returned no usable bars after retry"
+            )
+            errors.append(f"{security.ticker}: price retrieval/freshness needs review ({detail})")
             continue
         row["price_as_of"] = bars[-1].date.isoformat()
         row["history_sessions"] = len(bars)

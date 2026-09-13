@@ -71,7 +71,7 @@ def test_single_ticker_price_shapes_and_download_contract(yahoo, multi):
         auto_adjust=False,
         actions=False,
         group_by="ticker",
-        threads=True,
+        threads=4,
         progress=False,
         timeout=20,
     )
@@ -112,7 +112,7 @@ def test_partial_batch_preserves_healthy_ticker_and_warns(yahoo, missing_kind):
             else "no usable daily price bars"
         )
     ]
-    yahoo.download.assert_called_once()
+    assert yahoo.download.call_count == 2
 
 
 @pytest.mark.parametrize(
@@ -357,3 +357,40 @@ def test_missing_yfinance_dependency_has_actionable_error(monkeypatch):
     with pytest.raises(RuntimeError, match="yfinance is not installed.*pip install") as caught:
         adapter.YFinanceProvider._module()
     assert isinstance(caught.value.__cause__, ImportError)
+
+
+def test_partial_price_retry_fetches_only_missing_tickers_serially(yahoo):
+    yahoo.download.side_effect = [pd.concat({"AAA": prices()}, axis=1), prices([{"Close": 200}])]
+    result, warnings = adapter.YFinanceProvider().fetch_prices([SECURITY, OTHER], START, END)
+    assert warnings == []
+    assert result["AAA"][0].close == 100
+    assert result["BBB"][0].close == 200
+    calls = yahoo.download.call_args_list
+    assert calls[0].kwargs["tickers"] == ["AAA", "BBB"]
+    assert calls[0].kwargs["threads"] == 4
+    assert calls[1].kwargs["tickers"] == ["BBB"]
+    assert calls[1].kwargs["threads"] is False
+
+
+def test_failed_retry_preserves_healthy_prices_and_reports_remaining_failure(yahoo):
+    yahoo.download.side_effect = [
+        pd.concat({"AAA": prices()}, axis=1),
+        OSError("database unavailable"),
+    ]
+    result, warnings = adapter.YFinanceProvider().fetch_prices([SECURITY, OTHER], START, END)
+    assert set(result) == {"AAA"}
+    assert any("BBB" in warning for warning in warnings)
+    assert any("database unavailable" in warning for warning in warnings)
+
+
+def test_empty_universe_does_not_download(yahoo):
+    assert adapter.YFinanceProvider().fetch_prices([], START, END) == ({}, [])
+    yahoo.download.assert_not_called()
+
+
+def test_ambiguous_flat_batch_cannot_assign_one_stocks_prices_to_others(yahoo):
+    yahoo.download.return_value = prices()
+    result, warnings = adapter.YFinanceProvider().fetch_prices([SECURITY, OTHER], START, END)
+    assert result == {}
+    assert any("ambiguous" in warning for warning in warnings)
+    assert yahoo.download.call_count == 2

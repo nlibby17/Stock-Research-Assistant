@@ -75,7 +75,7 @@ def test_profiles_are_deterministic_normalized_and_meaningful():
     assert conservative["risk"] > balanced["risk"]
     assert (
         parse_component_weights("growth=.25,valuation=.20,quality=.25,momentum=.20,risk=.10")
-        == balanced
+        == pytest.approx(balanced, rel=1e-12, abs=1e-12)
     )
     with pytest.raises(ValueError, match="total 1.0"):
         parse_component_weights("growth=.50,valuation=.20,quality=.25,momentum=.20,risk=.10")

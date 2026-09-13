@@ -40,35 +40,55 @@ class YFinanceProvider(MarketDataProvider):
     ) -> tuple[dict[str, list[PriceBar]], list[str]]:
         yf = self._module()
         tickers = [security.ticker for security in securities]
+        if not tickers:
+            return {}, []
+        output: dict[str, list[PriceBar]] = {}
+        pending = tickers
         warnings: list[str] = []
         last_error: Exception | None = None
-        frame = None
+        received_frame = False
         for attempt in range(self.retries):
             try:
                 frame = yf.download(
-                    tickers=tickers,
+                    tickers=pending,
                     start=start.isoformat(),
                     end=end.isoformat(),
                     auto_adjust=False,
                     actions=False,
                     group_by="ticker",
-                    threads=True,
+                    threads=4 if attempt == 0 else False,
                     progress=False,
                     timeout=20,
                 )
                 if frame is not None and not frame.empty:
-                    break
+                    received_frame = True
+                    recovered, warnings = self._price_bars(frame, pending)
+                    output.update(recovered)
             except Exception as error:  # noqa: BLE001 - third-party provider exceptions vary.
                 last_error = error
+            pending = [ticker for ticker in tickers if ticker not in output]
+            if not pending:
+                return output, []
             if attempt + 1 < self.retries:
                 time.sleep(self.backoff_seconds * (attempt + 1))
-        if frame is None or frame.empty:
+        if not received_frame:
             detail = f": {last_error}" if last_error else ""
             raise RuntimeError(f"Yahoo price download returned no data{detail}")
+        # Keep successful bars if the retry itself fails; never replace them with
+        # empty data. Failed symbols remain explicit and cannot pass discovery.
+        if last_error:
+            warnings.append(f"Yahoo price retry failed: {last_error}")
+        return output, warnings
 
+    def _price_bars(self, frame, tickers):
+        warnings: list[str] = []
         fetched_at = datetime.now(UTC)
         output: dict[str, list[PriceBar]] = {}
         multi = getattr(frame.columns, "nlevels", 1) > 1
+        if not multi and len(tickers) > 1:
+            return {}, [
+                "Yahoo batch price response did not identify its tickers; refusing ambiguous prices"
+            ]
         for ticker in tickers:
             try:
                 sub = frame[ticker] if multi else frame
