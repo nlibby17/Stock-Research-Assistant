@@ -50,7 +50,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Synchronizing Python dependencies..."
-& ".\.venv\Scripts\python.exe" -m pip install --disable-pip-version-check --quiet -e ".[dev]"
+& ".\.venv\Scripts\python.exe" "$PSScriptRoot\install_dependencies.py"
 if ($LASTEXITCODE -ne 0) {
     throw "Dependency installation failed."
 }

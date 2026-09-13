@@ -66,7 +66,27 @@ to the approved product sequence or a restart of the closed refactoring campaign
 installer failure handling). Native-command exit checks and isolated Windows
 PowerShell / PowerShell 7 regression tests passed locally, along with the full
 Python suite and lint checks. The user authorized committing and pushing this
-step; the other workstreams remain planned.
+step, released as `ba56f32`. The user then authorized step 2 (Yahoo provider
+tests): 29 offline adapter tests now cover price shapes, partial and malformed
+data, adjusted-close fallback, timestamps, fundamental mappings, sparse-data
+warnings, retries and unavailable dependencies. Yahoo calls and retry sleeps are
+replaced in tests; production fetching behavior is unchanged. The user authorized
+committing and pushing steps 2 and 3 together before testing on their Mac.
+
+The user also authorized step 3. Standard and macOS 11/Python 3.12 dependency
+locks now pin transitive packages and packaging/test tools with artifact hashes.
+A shared installer consumes them for setup, updates and CI; integrity checks stop
+stale/modified locks. Supported standard CPython versions are 3.11–3.14, with
+3.12 required on macOS 11. Regeneration is explicit, using uv 0.12.10, and never
+runs during installation. See [dependency maintenance](../requirements/README.md).
+Clean Windows installs on Python 3.12 and 3.14, dependency drift restoration,
+PowerShell/Bash wrapper regressions and all 18 wheel-target checks passed. The
+full suite passed in each clean Windows environment: 509 passed, 4 skipped on
+Python 3.12 and again on 3.14; lint and CI YAML validation also passed.
+CI now covers all four Python versions on Windows/macOS/Linux plus the old Mac
+dependency profile on current macOS. Hosted CI and a real macOS 11 native-import
+smoke check remain release validation; wheel availability is not native execution.
+Workstreams 4–7 remain planned.
 
 | Suggested order | User item | Verified finding and proposed scope | Acceptance gate for future implementation |
 |---|---|---|---|

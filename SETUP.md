@@ -9,11 +9,14 @@ from GitHub.
 Install [Git](https://git-scm.com/downloads). Then install the appropriate Python
 version:
 
-- **Windows 10 or 11:** [Python 3.11 or newer](https://www.python.org/downloads/windows/).
-- **macOS 12 or newer:** a [current Python 3 release](https://www.python.org/downloads/macos/).
+- **Windows 10 or 11 (64-bit Intel/AMD):** [Python 3.11 through 3.14](https://www.python.org/downloads/windows/).
+- **macOS 12 or newer (Intel or Apple Silicon):** [Python 3.11 through 3.14](https://www.python.org/downloads/macos/).
 - **macOS 11:** the official
   [Python 3.12.10 universal2 installer](https://www.python.org/downloads/release/python-31210/).
   Python 3.12 can safely exist beside another Python version.
+
+Python 3.12 is the recommended common version. Python 3.15 and nonstandard Python
+builds are not supported until their dependencies and automated tests are validated.
 
 On Windows, allow the Python installer to add Python to `PATH` if that option is
 shown.
@@ -52,6 +55,12 @@ bash ./scripts/setup.sh
 Setup creates the local Python environment, installs the application, and creates a
 private `.env` file without overwriting an existing one. When asked about the
 recommended desktop shortcut or launcher, press **Enter** or **Return** for Yes.
+
+Setup and updates use the checked-in dependency locks, including package hashes,
+rather than choosing new package versions on each computer. An update installs the
+versions reviewed for that source revision. Unsupported Python versions, missing
+compatible wheels, stale locks, and dependency conflicts stop installation with an
+error. See [dependency support and lock maintenance](requirements/README.md).
 
 The macOS helper automatically uses Python 3.12 and compatible prebuilt packages on
 macOS 11. It avoids the PyArrow/libcst compilation and segmentation-fault problems
@@ -296,7 +305,8 @@ Windows or `--sec-user-agent` on macOS. Unattended setup can explicitly choose t
 desktop item with `-CreateDesktopShortcut`/`-SkipDesktopShortcut` on Windows or
 `--desktop-launcher`/`--no-desktop-launcher` on macOS.
 
-Linux users can create `.venv`, install the project with `pip install -e ".[dev]"`,
+Linux x64 users can create `.venv` with Python 3.11–3.14, install the project with
+`./.venv/bin/python scripts/install_dependencies.py`,
 copy `.env.example` to `.env`, and use `.venv/bin/stockrank` commands. Linux does not
 currently have a guided desktop launcher.
 

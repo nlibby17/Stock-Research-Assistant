@@ -9,12 +9,13 @@ permissions:
 
 jobs:
   test:
-    name: Python 3.12 on ${{ matrix.os }}
+    name: Python ${{ matrix.python }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
+        python: ["3.11", "3.12", "3.13", "3.14"]
         os:
           - ubuntu-latest
           - windows-latest
@@ -27,16 +28,59 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python }}
 
-      - name: Install application and verification tools
-        run: python -m pip install -e ".[dev]"
+      - name: Create isolated environment
+        shell: bash
+        run: |
+          python -m venv .venv
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "PROJECT_PYTHON=.venv/Scripts/python.exe" >> "$GITHUB_ENV"
+          else
+            echo "PROJECT_PYTHON=.venv/bin/python" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install locked application and verification tools
+        shell: bash
+        run: '"$PROJECT_PYTHON" scripts/install_dependencies.py'
 
       - name: Lint
-        run: ruff check .
+        shell: bash
+        run: '"$PROJECT_PYTHON" -m ruff check .'
 
       - name: Test
-        run: python -m pytest -q
+        shell: bash
+        run: '"$PROJECT_PYTHON" -m pytest -q'
+
+  dependency-locks:
+    name: Lock integrity and supported wheel targets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install uv==0.12.10
+      - run: python scripts/lock_dependencies.py --check
+      - run: python scripts/check_lock_wheels.py
+
+  macos-compatibility:
+    name: macOS 11 dependency profile on current macOS
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m venv .venv
+      - run: |
+          .venv/bin/python -m pip install --require-hashes --only-binary=:all: -r requirements/macos-11-py312.lock
+      - run: .venv/bin/python -m pip install --no-deps --no-build-isolation -e .
+      - run: .venv/bin/python -m pip check
+      - run: .venv/bin/python -c "import pyarrow, numpy, pandas, curl_cffi, yfinance, streamlit"
+      - run: .venv/bin/python -m pytest -q
 
   frontend:
     name: React views and bundled assets

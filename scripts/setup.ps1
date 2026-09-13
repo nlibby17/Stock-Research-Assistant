@@ -19,7 +19,7 @@ if ($null -ne $pythonLauncher) {
 } else {
     $pythonCommand = Get-Command python -ErrorAction SilentlyContinue
     if ($null -eq $pythonCommand) {
-        throw "Python 3.11 or newer was not found. Install Python, then rerun this script."
+        throw "Python 3.11 through 3.14 was not found. Install Python, then rerun this script."
     }
     $pythonExecutable = $pythonCommand.Source
     $pythonArgs = @()
@@ -33,8 +33,8 @@ if ($versionText -notmatch '^\d+\.\d+$') {
     throw "Python returned an invalid version. Repair Python, then rerun setup."
 }
 $versionParts = $versionText.Split(".")
-if ([int]$versionParts[0] -lt 3 -or ([int]$versionParts[0] -eq 3 -and [int]$versionParts[1] -lt 11)) {
-    throw "Python 3.11 or newer is required; found $versionText."
+if ([int]$versionParts[0] -ne 3 -or [int]$versionParts[1] -lt 11 -or [int]$versionParts[1] -gt 14) {
+    throw "Python 3.11 through 3.14 is required; found $versionText."
 }
 
 if (-not (Test-Path -LiteralPath ".venv\Scripts\python.exe")) {
@@ -47,7 +47,7 @@ if (-not (Test-Path -LiteralPath ".venv\Scripts\python.exe" -PathType Leaf)) {
     throw "The local Python environment is incomplete. Repair .venv before rerunning setup."
 }
 
-& ".\.venv\Scripts\python.exe" -m pip install -e ".[dev]"
+& ".\.venv\Scripts\python.exe" "$PSScriptRoot\install_dependencies.py"
 if ($LASTEXITCODE -ne 0) {
     throw "Dependency installation failed (exit=$LASTEXITCODE). Review pip's error above, resolve it, and rerun setup. Installation is not complete."
 }

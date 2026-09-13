@@ -1,0 +1,10 @@
+{
+  "uv_version": "0.12.10",
+  "sha256": {
+    "pyproject.toml": "98fc0b72439eec380ba40cb353239de0d77d11afc5aaaea9b5dbb6a10368693d",
+    "requirements/toolchain.in": "c2366470f55398cab17e93b0bbb1597142bbe72cc19e6878a927b15ebbce9fd3",
+    "constraints/macos-11-py312.txt": "f69d9b593d779cdf15510c51cadd375631ff87ba3ee402c2529df8016e1dd44b",
+    "requirements/standard.lock": "d543404ba34a47b0aba9cbf15d87f9b56e132c8dcc9f5c3511a9089ef2ac3a03",
+    "requirements/macos-11-py312.lock": "f59a55bc72d3631d6a9576ae36e58134ef01ad53d580d05e347a800c89928aab"
+  }
+}

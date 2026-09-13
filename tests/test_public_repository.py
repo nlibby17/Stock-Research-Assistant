@@ -41,7 +41,10 @@ def test_ci_runs_lint_and_tests_on_all_supported_desktop_families():
     assert "windows-latest" in workflow
     assert "macos-latest" in workflow
     assert "ruff check ." in workflow
-    assert "python -m pytest -q" in workflow
+    assert '"$PROJECT_PYTHON" -m pytest -q' in workflow
+    assert 'python: ["3.11", "3.12", "3.13", "3.14"]' in workflow
+    assert "scripts/install_dependencies.py" in workflow
+    assert "scripts/check_lock_wheels.py" in workflow
 
 
 def test_agent_instructions_require_completed_research_import_workflow():

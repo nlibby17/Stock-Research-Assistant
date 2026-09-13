@@ -68,7 +68,7 @@ if [[ "$macos_major" == "11" ]]; then
         python
     )
 else
-    python_candidates=(python3.13 python3 python)
+    python_candidates=(python3.12 python3.13 python3.14 python3.11 python3 python)
 fi
 
 for candidate in "${python_candidates[@]}"; do
@@ -76,7 +76,7 @@ for candidate in "${python_candidates[@]}"; do
         if [[ "$macos_major" == "11" ]]; then
             version_is_compatible="$($candidate -c 'import sys; print(sys.version_info[:2] == (3, 12))')"
         else
-            version_is_compatible="$($candidate -c 'import sys; print(sys.version_info >= (3, 11))')"
+            version_is_compatible="$($candidate -c 'import sys; print((3, 11) <= sys.version_info[:2] < (3, 15))')"
         fi
         if [[ "$version_is_compatible" == "True" ]]; then
             python_executable="$candidate"
@@ -91,20 +91,24 @@ if [[ -z "$python_executable" ]]; then
         echo "Install the official Python 3.12.10 macOS universal2 package, reopen Terminal, and rerun:" >&2
         echo "https://www.python.org/downloads/release/python-31210/" >&2
     else
-        echo "ERROR: Python 3.11 or newer was not found." >&2
-        echo "Install Python 3.13 from python.org, reopen Terminal, and rerun this script." >&2
+        echo "ERROR: Python 3.11–3.14 was not found." >&2
+        echo "Install Python 3.12 from python.org, reopen Terminal, and rerun this script." >&2
     fi
     exit 1
 fi
 
+# Reuse a supported existing environment instead of switching Python merely
+# because another supported interpreter now has higher discovery priority.
+if [[ -x ".venv/bin/python" ]]; then
+    existing_compatible="$(.venv/bin/python -c 'import sys; print((3, 11) <= sys.version_info[:2] < (3, 15))')"
+    existing_minor="$(.venv/bin/python -c 'import sys; print(sys.version_info.minor)')"
+    if [[ "$existing_compatible" == "True" && ( "$macos_major" != "11" || "$existing_minor" == "12" ) ]]; then
+        python_executable=".venv/bin/python"
+    fi
+fi
+
 python_version="$($python_executable -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")')"
 echo "Using $python_executable (Python $python_version)."
-
-use_macos_11_constraints=false
-if [[ "$macos_major" == "11" ]]; then
-    use_macos_11_constraints=true
-    echo "Using the tested macOS 11 dependency compatibility profile."
-fi
 
 if [[ -x ".venv/bin/python" ]]; then
     environment_version="$(.venv/bin/python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
@@ -127,29 +131,8 @@ if [[ ! -x ".venv/bin/python" ]]; then
     "$python_executable" -m venv .venv
 fi
 
-echo "Updating Python packaging tools..."
-".venv/bin/python" -m ensurepip --upgrade
-".venv/bin/python" -m pip install \
-    --disable-pip-version-check --upgrade pip setuptools wheel
-
-echo "Installing the application and verification tools..."
-if [[ "$use_macos_11_constraints" == true ]]; then
-    install_result=0
-    ".venv/bin/python" -m pip install \
-        --disable-pip-version-check --only-binary=:all: \
-        --constraint "$project_root/constraints/macos-11-py312.txt" -e ".[dev]" \
-        || install_result=$?
-else
-    install_result=0
-    ".venv/bin/python" -m pip install \
-        --disable-pip-version-check --only-binary=:all: -e ".[dev]" \
-        || install_result=$?
-fi
-if ((install_result != 0)); then
-    echo "ERROR: Dependency installation failed without compiling packages from source." >&2
-    echo "Confirm the supported Python version and that its architecture matches the Mac." >&2
-    exit 1
-fi
+echo "Installing locked application dependencies and verification tools..."
+".venv/bin/python" "$project_root/scripts/install_dependencies.py"
 
 if [[ ! -f ".env" ]]; then
     cp ".env.example" ".env"

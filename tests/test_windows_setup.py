@@ -24,7 +24,7 @@ using System.Linq;
 public class Stub {
     public static int Main(string[] args) {
         string stage = args.Contains("-c") ? "probe" :
-            args.Contains("venv") ? "venv" : args.Contains("pip") ? "pip" : "validate";
+            args.Contains("venv") ? "venv" : (args.Contains("pip") || args.Any(a => a.EndsWith("install_dependencies.py"))) ? "pip" : "validate";
         File.AppendAllText(Environment.GetEnvironmentVariable("SETUP_TEST_LOG"), stage + "\n");
         string failure = Environment.GetEnvironmentVariable("SETUP_TEST_FAILURE");
         if (failure == stage) {

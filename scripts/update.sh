@@ -40,25 +40,6 @@ if [[ ! -x ".venv/bin/python" || ! -x ".venv/bin/stockrank" ]]; then
     exit 1
 fi
 
-use_macos_11_constraints=false
-if [[ "$(uname -s)" == "Darwin" ]] && command -v sw_vers >/dev/null 2>&1; then
-    macos_version="$(sw_vers -productVersion)"
-    macos_major="${macos_version%%.*}"
-    environment_version="$(.venv/bin/python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
-    if ((macos_major < 11)); then
-        echo "ERROR: This updater supports macOS 11 or newer; found macOS $macos_version." >&2
-        exit 1
-    fi
-    if [[ "$macos_major" == "11" ]]; then
-        if [[ "$environment_version" != "3.12" ]]; then
-            echo "ERROR: macOS 11 requires the Python 3.12 environment created by scripts/setup.sh." >&2
-            echo "Run: bash ./scripts/setup.sh" >&2
-            exit 1
-        fi
-        use_macos_11_constraints=true
-    fi
-fi
-
 source_changes="$(git status --porcelain --untracked-files=all)"
 if [[ -n "$source_changes" ]]; then
     echo "Update stopped because source-controlled or untracked project files changed:"
@@ -88,17 +69,7 @@ echo "Updating branch '$branch' with a fast-forward-only pull..."
 git pull --ff-only origin "$branch"
 
 echo "Synchronizing Python dependencies..."
-".venv/bin/python" -m ensurepip --upgrade
-".venv/bin/python" -m pip install \
-    --disable-pip-version-check --quiet --upgrade pip setuptools wheel
-if [[ "$use_macos_11_constraints" == true ]]; then
-    ".venv/bin/python" -m pip install \
-        --disable-pip-version-check --quiet --only-binary=:all: \
-        --constraint "$project_root/constraints/macos-11-py312.txt" -e ".[dev]"
-else
-    ".venv/bin/python" -m pip install \
-        --disable-pip-version-check --quiet --only-binary=:all: -e ".[dev]"
-fi
+".venv/bin/python" "$project_root/scripts/install_dependencies.py"
 
 echo "Validating the installation and active personal configuration..."
 ".venv/bin/stockrank" setup-check
