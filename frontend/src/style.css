@@ -1227,3 +1227,86 @@ footer {
   border-color: #b19be85c;
   background: #b19be812;
 }
+
+.detailed-tooltip p,
+.model-formulas {
+  white-space: pre-line;
+}
+.detailed-tooltip {
+  width: min(320px, calc(100% - 24px));
+  max-height: 65vh;
+  overflow-y: auto;
+  pointer-events: none;
+}
+.validation-alert {
+  margin: 0 0 16px;
+  font-size: 0.85rem;
+}
+.model-button {
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.model-button strong,
+.model-button small {
+  display: block;
+}
+.model-button small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.scoring-dialog {
+  padding: 0;
+  width: min(680px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  border: 1px solid #9a8050;
+  border-radius: 16px;
+  background: #18202c;
+  color: #edf1f5;
+  box-shadow: 0 20px 60px #0009;
+}
+.scoring-dialog::backdrop {
+  background: #070d18bb;
+}
+.scoring-panel {
+  padding: 24px;
+}
+.scoring-panel header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.scoring-panel h2 {
+  margin: 0;
+}
+.scoring-panel details {
+  border-top: 1px solid #ffffff20;
+  padding: 14px 0;
+}
+.scoring-panel summary {
+  cursor: pointer;
+  color: #d8b66e;
+  font-weight: 600;
+}
+.scoring-panel p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.formula-table td {
+  white-space: pre-line;
+}
+
+.detailed-tooltip p {
+  color: #edf1f5;
+}
+
+.home-metrics .model-button:hover,
+.home-metrics .model-button:focus-visible {
+  border-color: #d8b66e;
+  background: linear-gradient(140deg, #343329, #202735);
+  box-shadow: 0 0 18px #d8b66e26;
+}

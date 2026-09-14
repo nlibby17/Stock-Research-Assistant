@@ -186,7 +186,12 @@ class ReviewJob:
 
 
 def execute(request):
-    from stockrank.universe_commands import discovery_lock, load_policy, run_discovery
+    from stockrank.universe_commands import (
+        discovery_lock,
+        load_policy,
+        read_proposal,
+        run_discovery,
+    )
 
     root = Path(request["root"])
     os.chdir(root)
@@ -196,7 +201,10 @@ def execute(request):
         with discovery_lock(settings):
             policy = replace(load_policy(settings), consider_tickers=tuple(payload["tickers"]))
             atomic_json(root / "config/universe-discovery.local.json", asdict(policy))
-        path = run_discovery(load_settings(root), policy, preview=True)
+        previous = (
+            read_proposal(Path(payload["proposal_path"])) if payload.get("proposal_path") else None
+        )
+        path = run_discovery(load_settings(root), policy, preview=True, reuse_proposal=previous)
         return {"status": "complete", "proposal_path": str(path)}
     if request["kind"] != "report":
         raise ValueError("Unknown review job")

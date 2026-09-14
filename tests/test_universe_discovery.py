@@ -858,7 +858,9 @@ def test_review_http_nomination_and_report_failure_are_explicit(settings, review
     assert request("POST", "/nominate", {"token": token, "tickers": "bad/../ticker"})[0] == 409
     assert not request.job.calls
     assert request("POST", "/nominate", {"token": token, "tickers": "aapl, MSFT"})[0] == 303
-    assert request.job.calls[-1] == ("nominate", {"tickers": ["AAPL", "MSFT"]})
+    assert request.job.calls[-1][0] == "nominate"
+    assert request.job.calls[-1][1]["tickers"] == ["AAPL", "MSFT"]
+    assert request.job.calls[-1][1]["proposal_path"]
     assert request.location == "/progress"
     request.job.kind = "report"
     request.job.result = {
@@ -1102,3 +1104,199 @@ def test_morning_sec_warning_still_reaches_discovery(settings, monkeypatch):
         (settings.runtime_dir / "universe/report-status-morning-test.json").read_text()
     )
     assert any("GEV" in w for w in status["warnings"])
+
+
+@pytest.fixture
+def verified_evidence(settings, evidence):
+    raw = copy.deepcopy(evidence)
+    raw.update(
+        verified_rows=copy.deepcopy(raw["candidates"]),
+        verified_at=NOW.isoformat(),
+        verified_inputs={},
+        screens=[{"symbols": [r["ticker"] for r in raw["candidates"]]}],
+        sources=[],
+        price_warnings=[],
+        collected_at=NOW.isoformat(),
+    )
+    for index, row in enumerate(raw["verified_rows"]):
+        row["price_as_of"] = raw["market_date"]
+        if not row["exclusions"]:
+            raw["verified_inputs"][row["ticker"]] = {
+                "company": row["company"],
+                "sector": row["sector"],
+                "price_as_of": raw["market_date"],
+                "metrics": {metric: (index + 1) / 100 for metric in settings.directions},
+            }
+    return raw
+
+
+def test_nomination_only_verifies_new_tickers_and_rescores_full_pool(
+    settings, verified_evidence, monkeypatch
+):
+    from stockrank import universe_sources as sources
+
+    before = copy.deepcopy(verified_evidence)
+    new_row = copy.deepcopy(before["verified_rows"][0])
+    new_row.update(ticker="ZZZ", cik="9999999999", company="New candidate")
+    new_input = copy.deepcopy(before["verified_inputs"][before["verified_rows"][0]["ticker"]])
+    added = {
+        **copy.deepcopy(before),
+        "verified_rows": [new_row],
+        "verified_inputs": {"ZZZ": new_input},
+    }
+    calls = []
+
+    def collect(*args, **kwargs):
+        calls.append(kwargs["only_tickers"])
+        return added
+
+    monkeypatch.setattr(sources, "collect_evidence", collect)
+    result = sources.extend_evidence(
+        settings,
+        DiscoveryPolicy(consider_tickers=("ZZZ",)),
+        before,
+        now=NOW + timedelta(minutes=5),
+        progress=lambda *a, **k: None,
+    )
+    expected = copy.deepcopy(before)
+    expected["verified_rows"].append(new_row)
+    expected["verified_inputs"]["ZZZ"] = new_input
+    assert result["candidates"] == sources.rescore_evidence(settings, expected)["candidates"]
+    assert calls == [["ZZZ"]]
+    assert result["verified_at"] == before["verified_at"]
+    assert before == verified_evidence
+
+
+def test_already_checked_nomination_needs_no_provider_calls(
+    settings, verified_evidence, monkeypatch
+):
+    from stockrank import universe_sources as sources
+
+    def fail(*a, **k):
+        raise AssertionError("Already checked stocks must not be fetched again")
+
+    monkeypatch.setattr(sources, "collect_evidence", fail)
+    ticker = verified_evidence["verified_rows"][0]["ticker"]
+    result = sources.extend_evidence(
+        settings,
+        DiscoveryPolicy(consider_tickers=(ticker,)),
+        verified_evidence,
+        now=NOW,
+        progress=lambda *a, **k: None,
+    )
+    assert len(result["candidates"]) == len(verified_evidence["candidates"])
+
+
+@pytest.mark.parametrize("age,expected", [(0, True), (60, True), (61, False), (-1, False)])
+def test_nomination_reuse_expires_without_extending_original_verification(
+    settings, verified_evidence, age, expected
+):
+    policy = DiscoveryPolicy()
+    proposal = build_proposal(settings, policy, verified_evidence, now=NOW, preview=True)
+    assert (
+        commands.reusable_nomination_evidence(
+            settings,
+            replace(policy, consider_tickers=("ZZZ",)),
+            proposal,
+            NOW + timedelta(minutes=age),
+        )
+        is expected
+    )
+    changed = copy.deepcopy(settings)
+    changed.raw["scoring"]["overall"]["growth"] += 0.01
+    assert not commands.reusable_nomination_evidence(changed, policy, proposal, NOW)
+
+
+def test_new_market_date_forces_consistent_full_refresh(settings, verified_evidence, monkeypatch):
+    from stockrank import universe_sources as sources
+
+    calls = []
+
+    def collect(*args, **kwargs):
+        calls.append(kwargs.get("only_tickers"))
+        return {**verified_evidence, "market_date": "2026-09-09"}
+
+    monkeypatch.setattr(sources, "collect_evidence", collect)
+    result = sources.extend_evidence(
+        settings,
+        DiscoveryPolicy(consider_tickers=("ZZZ",)),
+        verified_evidence,
+        now=NOW,
+        progress=lambda *a, **k: None,
+    )
+    assert calls == [["ZZZ"], None]
+    assert result["market_date"] == "2026-09-09"
+
+
+def test_review_sorts_members_without_changing_ranked_proposal(settings, evidence):
+    proposal = build_proposal(settings, DiscoveryPolicy(), evidence, now=NOW, preview=True)
+    before = copy.deepcopy(proposal)
+    for result in proposal["profiles"].values():
+        result["members"].reverse()
+    html = render_review(proposal, action_token="test")
+    for profile, result in proposal["profiles"].items():
+        section = html.split(f'<section id="{profile}">')[1].split("</section>")[0]
+        table = section.split("<tbody>")[1].split("</tbody>")[0]
+        tickers = sorted(m["ticker"] for m in result["members"])
+        positions = [table.index(f"<strong>{ticker}</strong>") for ticker in tickers]
+        assert positions == sorted(positions)
+        assert result["members"] == list(reversed(before["profiles"][profile]["members"]))
+
+
+def test_incremental_collector_skips_sector_screens_and_existing_price_downloads(
+    settings, monkeypatch
+):
+    from types import SimpleNamespace
+
+    from stockrank import universe_sources as sources
+
+    class DownloadObserved(Exception):
+        pass
+
+    def unexpected_screen(*args, **kwargs):
+        raise AssertionError("Nomination must not rerun sector screens")
+
+    yahoo = SimpleNamespace(
+        set_tz_cache_location=lambda *a: None,
+        EquityQuery=unexpected_screen,
+        screen=unexpected_screen,
+    )
+    monkeypatch.setattr(sources.YFinanceProvider, "_module", staticmethod(lambda: yahoo))
+    monkeypatch.setattr(
+        sources.requests,
+        "get",
+        lambda *a, **k: SimpleNamespace(text="fixture", raise_for_status=lambda: None),
+    )
+    monkeypatch.setattr(sources, "listing_rows", lambda *a, **k: {"ZZZ": {}})
+    monkeypatch.setattr(sources, "listing_exclusions", lambda *a: [])
+    monkeypatch.setattr(sources.SecClient, "from_settings", lambda *a, **k: object())
+    directory = SimpleNamespace(
+        source_url="fixture",
+        fetched_at=NOW,
+        identities=[SimpleNamespace(ticker="ZZZ", cik="0000000123", exchange="NYSE")],
+    )
+    monkeypatch.setattr(
+        sources.SecIdentityDirectory,
+        "from_settings",
+        lambda *a: SimpleNamespace(fetch=lambda **k: directory),
+    )
+
+    def download(self, securities, start, end):
+        assert [s.ticker for s in securities] == ["ZZZ", "SPY"]
+        raise DownloadObserved
+
+    monkeypatch.setattr(sources.YFinanceProvider, "fetch_prices", download)
+    with pytest.raises(DownloadObserved):
+        sources.collect_evidence(
+            settings,
+            DiscoveryPolicy(consider_tickers=("ZZZ",)),
+            now=NOW,
+            progress=lambda *a, **k: None,
+            only_tickers=["ZZZ"],
+        )
+
+
+def test_legacy_nomination_evidence_requires_full_verification(settings, evidence):
+    policy = DiscoveryPolicy()
+    proposal = build_proposal(settings, policy, evidence, now=NOW, preview=True)
+    assert not commands.reusable_nomination_evidence(settings, policy, proposal, NOW)

@@ -188,3 +188,30 @@ commit and push on 2026-09-06. It is committed and pushed as `9acd197`
 Mac confirmation closes the remaining manual platform check for this checkpoint.
 No production input change is included. See `ROADMAP.md` for the next work item;
 this migration does not authorize future feature implementation.
+
+
+## Universe review and scoring explanations (2026-09-13)
+
+Universe review lists and confirmation membership are alphabetical by ticker;
+ranking and selection order are unchanged. Manual nominations verify only new
+tickers when the proposal has a compatible verification snapshot no more than
+one hour old on the same local date. Shared listing/identity checks and the SPY
+calendar reference still run for new nominations. Scores are recomputed locally
+against the combined pool. Expired/legacy evidence, changed settings, or a changed
+market date require full verification; repeated edits do not extend snapshot age.
+
+The Home-only **Validation Alert** starts collapsed and retains the SEC diagnostic
+details when expanded. Research and VS factor charts, their Chart Data tables,
+and factor table tooltips explain the saved scoring weights, constituent formulas,
+and time windows. Hover, focus, or expand Home's Scoring model card for all five
+categories. Top Candidates chart tooltips retain their existing content.
+Yahoo growth and ratio fields do not supply exact reporting/comparison dates, so
+help text states that limitation instead of inventing a period. Momentum and risk
+price windows use the exact trading-session counts implemented by the pipeline.
+
+
+2026-09-14 follow-up: Home's Scoring model card now opens a centered native dialog,
+with the overall formula and five expandable category sections. Close, Escape,
+and backdrop clicks dismiss it; focus returns to the card. Research and VS graph
+tooltips use compact calculation/timeframe summaries. Full formulas remain in
+Chart Data and the scoring panel. Top Candidates tooltips are unchanged.

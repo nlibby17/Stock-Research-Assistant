@@ -238,3 +238,39 @@ test("Research has a larger title-case tier badge and comparison opts into tilt 
     /class="arena tilt-only"/,
   );
 });
+
+test("validation alert is collapsed and confined to Home", () => {
+  const value = { ...data, workflow_warnings: ["Auxiliary SEC detail"] };
+  const home = render(Home, value);
+  assert.match(home, /Validation Alert/);
+  assert.doesNotMatch(home, /Auxiliary SEC detail/);
+  for (const View of [Candidates, Comparison, Research, Advanced]) {
+    assert.doesNotMatch(
+      render(View, value),
+      /Validation Alert|Auxiliary SEC detail/,
+    );
+  }
+});
+
+test("factor graphs expose formulas and trading windows without changing candidate help", () => {
+  const value = {
+    ...data,
+    scoring: { momentum: { momentum_3m: 1 } },
+    candidates: [candidate, { ...candidate, ticker: "NEXT" }],
+  };
+  for (const View of [Research, Comparison]) {
+    assert.match(render(View, value), /21, 63, 126 and 252 trading sessions/);
+  }
+  assert.doesNotMatch(render(Candidates, value), /63 trading sessions ago/);
+  assert.match(render(Home, value), /63 trading sessions ago/);
+});
+
+test("Home scoring explanations live in a labelled dialog with five expandable sections", () => {
+  const html = render(Home);
+  assert.match(html, /aria-haspopup="dialog"/);
+  assert.match(html, /<dialog[^>]+aria-labelledby/);
+  assert.match(html, /How scoring works/);
+  for (const category of ["Growth", "Valuation", "Quality", "Momentum", "Risk"])
+    assert.ok(html.includes(`<summary>${category}</summary>`));
+  assert.doesNotMatch(html, /model-explanation/);
+});

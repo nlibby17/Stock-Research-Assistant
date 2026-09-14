@@ -22,7 +22,7 @@ def render_review(
     sections = []
     for profile, result in proposal["profiles"].items():
         rows = []
-        for member in result["members"]:
+        for member in sorted(result["members"], key=lambda r: r["ticker"]):
             row = candidates[member["ticker"]]
             status = "Add" if row["ticker"] in result["additions"] else "Keep"
             warnings = " · ".join(row["warnings"]) or "No additional candidate warnings"
@@ -68,14 +68,14 @@ def render_review(
                     else ""
                 )
                 + "</li>"
-                for r in result["removals"]
+                for r in sorted(result["removals"], key=lambda r: r["ticker"])
             )
             or "<li>No removals</li>"
         )
         bars = "".join(
             f'<div class="sector"><span>{e(sector)}</span><meter min="0" max="{proposal["policy"]["target_size"]}" '
             f'value="{count}">{count}</meter><b>{count}</b></div>'
-            for sector, count in result["sector_counts"].items()
+            for sector, count in sorted(result["sector_counts"].items())
         )
         blockers = "".join(f"<li>{e(b)}</li>" for b in result["blockers"])
         gate = (
@@ -109,7 +109,7 @@ Kept stocks can grow your list up to {MAX_UNIVERSE_SIZE}. At the cap, you can re
             selected_tickers = {m["ticker"] for m in result["members"]}
             choices = "".join(
                 f'<li><label><input type="checkbox" form="edit-{profile}" name="include" value="{e(t)}"> Include {e(t)} · {e(r["company"])} · {e(r["sector"])} · score {r["score"]:.1f}</label></li>'
-                for t, r in candidates.items()
+                for t, r in sorted(candidates.items())
                 if t not in selected_tickers and not r["exclusions"] and r.get("score") is not None
             )
             additional = f"<details><summary>Other eligible stocks you can include</summary><ul>{choices or '<li>No other eligible candidates in this screen.</li>'}</ul></details>"
@@ -131,7 +131,7 @@ Kept stocks can grow your list up to {MAX_UNIVERSE_SIZE}. At the cap, you can re
     warnings = "".join(f"<li>{e(w)}</li>" for w in proposal["warnings"])
     excluded = "".join(
         f"<tr><td>{e(r['ticker'])}</td><td>{e('; '.join(r['exclusions']))}</td></tr>"
-        for r in candidates.values()
+        for r in sorted(candidates.values(), key=lambda r: r["ticker"])
         if r["exclusions"]
     )
     notice = (
@@ -147,17 +147,17 @@ Kept stocks can grow your list up to {MAX_UNIVERSE_SIZE}. At the cap, you can re
             considered if considered is not None else proposal["policy"].get("consider_tickers", [])
         )
         nomination = f'''<section><h2>Add stocks to consider</h2>
-<p>Enter your candidate tickers, separated by commas (up to 25). They are saved for future searches and checked alongside the automatic candidates.
+<p>Enter your candidate tickers, separated by commas (up to 25). They are saved for future searches. Only new tickers are verified while the existing checks are recent; all pool scores are recalculated locally. Evidence older than one hour, a changed market date, or changed settings requires a full refresh.
 After the refreshed review opens, use <strong>Other eligible stocks you can include</strong> to select a passing candidate. Failed checks appear under Excluded candidates.</p>
 <form method="post" action="/nominate"><input type="hidden" name="token" value="{e(action_token)}">
-<label>Your candidate list <input name="tickers" value="{e(", ".join(tickers))}" maxlength="500" style="width:100%;padding:12px;font:inherit"></label>
-<button>Save candidates &amp; refresh proposal</button><p>Replace this list to stop considering a ticker. This does not remove an active stock.
+<label>Your candidate list <input name="tickers" value="{e(", ".join(sorted(tickers)))}" maxlength="500" style="width:100%;padding:12px;font:inherit"></label>
+<button>Save candidates &amp; update proposal</button><p>Replace this list to stop considering a ticker. This does not remove an active stock.
 Add candidates before customizing a profile: refreshing resets unsaved checkbox selections.</p></form></section>'''
     approved_action = ""
     if action_token and decision and decision.startswith(("approved", "rejected")):
         approved_members = (
             f"<p><strong>Selected list ({len(receipt['members'])} stocks):</strong> "
-            + e(", ".join(m["ticker"] for m in receipt["members"]))
+            + e(", ".join(sorted(m["ticker"] for m in receipt["members"])))
             + "</p>"
             if receipt
             else ""

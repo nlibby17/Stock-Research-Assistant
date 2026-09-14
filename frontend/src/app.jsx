@@ -1,3 +1,8 @@
+import {
+  componentHelp,
+  componentSummary,
+  overallHelp,
+} from "./scoring-help.mjs";
 import React, { useEffect, useRef, useState, useId } from "react";
 import { createRoot } from "react-dom/client";
 import Markdown from "react-markdown";
@@ -294,8 +299,17 @@ function Bars({
       group,
       value,
       seriesIndex,
-      x: Math.max(12, Math.min(pointerX - bounds.left, bounds.width - 292)),
-      y: Math.max(12, pointerY - bounds.top - 140),
+      x: Math.max(
+        12,
+        Math.min(
+          pointerX - bounds.left,
+          bounds.width - (group.explanation ? 332 : 292),
+        ),
+      ),
+      y: Math.max(
+        group.explanation ? Math.max(12, 12 - bounds.top) : 12,
+        pointerY - bounds.top - 140,
+      ),
     });
   }
   const width = compact ? 900 : Math.max(640, groups.length * 78),
@@ -357,7 +371,7 @@ function Bars({
                     key={j}
                     tabIndex="0"
                     role="img"
-                    aria-label={`${g.label} · ${series[j]}: ${number(value)}${g.coverage ? " · Coverage " + percent(g.coverage[j], 0) : ""}${g.help ? " · " + g.help : ""}`}
+                    aria-label={`${g.label} · ${series[j]}: ${number(value)}${g.coverage ? " · Coverage " + percent(g.coverage[j], 0) : ""}${g.help ? " · " + g.help : ""}${g.summary ? " · " + g.summary : ""}`}
                     aria-describedby={
                       tooltip?.group === g && tooltip.seriesIndex === j
                         ? tooltipId
@@ -443,6 +457,7 @@ function Bars({
                 textAnchor="middle"
                 className="axis category"
               >
+                {g.explanation && <title>{g.summary}</title>}
                 {g.label}
               </text>
             </g>
@@ -453,7 +468,10 @@ function Bars({
         <div
           id={tooltipId}
           role="tooltip"
-          className="chart-tooltip"
+          className={
+            "chart-tooltip" +
+            (tooltip.group.explanation ? " detailed-tooltip" : "")
+          }
           style={{ left: tooltip.x, top: tooltip.y }}
         >
           <strong className={colors[tooltip.seriesIndex]}>
@@ -467,6 +485,7 @@ function Bars({
             </span>
           )}
           {tooltip.group.help && <p>{tooltip.group.help}</p>}
+          {tooltip.group.explanation && <p>{tooltip.group.summary}</p>}
         </div>
       )}
       <figcaption>
@@ -479,8 +498,10 @@ function Bars({
       </figcaption>
       <Disclosure title="Chart data">
         <DataTable
+          className={groups.some((g) => g.explanation) ? "formula-table" : ""}
           rows={groups.map((g) => ({
             Measure: g.label,
+            ...(g.explanation ? { Explanation: g.explanation } : {}),
             ...Object.fromEntries(
               series.map((s, i) => [s, number(g.values[i])]),
             ),
@@ -525,10 +546,74 @@ function TiltCard({ children, className = "", onClick, title }) {
     </Tag>
   );
 }
+function ScoringModel({ scoring, version }) {
+  const dialog = useRef(null);
+  const headingId = useId();
+  return (
+    <>
+      <button
+        className="metric model-button"
+        aria-haspopup="dialog"
+        onClick={() => dialog.current.showModal()}
+      >
+        <span>Scoring model</span>
+        <strong>{version}</strong>
+        <small>How scoring works</small>
+      </button>
+      <dialog
+        ref={dialog}
+        className="scoring-dialog"
+        aria-labelledby={headingId}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) dialog.current.close();
+        }}
+      >
+        <div className="scoring-panel">
+          <header>
+            <h2 id={headingId}>How scoring works</h2>
+            <button
+              autoFocus
+              onClick={() => dialog.current.close()}
+              aria-label="Close scoring explanation"
+            >
+              Close
+            </button>
+          </header>
+          <p className="model-formulas">{overallHelp}</p>
+          <p>
+            Scores compare stocks in this report on a 0–100 scale. Missing
+            metrics are omitted; lower-is-better metrics are reversed.
+          </p>
+          {factors.map((factor) => (
+            <details key={factor}>
+              <summary>{label(factor)}</summary>
+              <p className="model-formulas">{componentHelp(factor, scoring)}</p>
+            </details>
+          ))}
+        </div>
+      </dialog>
+    </>
+  );
+}
+
 function Home({ data, navigate }) {
   const r = data.run;
   return (
     <>
+      {data.workflow_warnings?.length > 0 && (
+        <Disclosure title="Validation Alert" className="validation-alert">
+          <p>
+            Rankings passed validation. Additional SEC checks need attention;
+            this data has not been substituted into your scores.
+          </p>
+          <ul>
+            {data.workflow_warnings.map((warning, index) => (
+              <li key={index}>{warning}</li>
+            ))}
+          </ul>
+        </Disclosure>
+      )}
+
       <div className="hero">
         <div>
           <span className="eyebrow">Daily research brief</span>
@@ -637,7 +722,7 @@ function Home({ data, navigate }) {
           title="Eligible candidates"
           value={data.results.filter((r) => r.eligible).length}
         />
-        <Metric title="Scoring model" value={r.model_version} />
+        <ScoringModel scoring={data.scoring} version={r.model_version} />
         <Metric title="Provider" value={r.provider} />
         <Metric
           title="Ranking style"
@@ -860,6 +945,8 @@ function Comparison({ data }) {
               label: label(f),
               values: pair.map((r) => r.component_scores[f]),
               coverage: pair.map((r) => r.component_coverage[f]),
+              explanation: componentHelp(f, data.scoring),
+              summary: componentSummary(f, data.scoring),
             }))}
           />
           <Disclosure title="Coverage" className="gold-panel">
@@ -867,12 +954,17 @@ function Comparison({ data }) {
               <DataTable
                 className="gold-panel"
                 rows={factors.map((f) => ({
+                  factorKey: f,
                   factor: label(f),
                   left: pair[0].component_coverage[f],
                   right: pair[1].component_coverage[f],
                 }))}
                 columns={[
-                  { key: "factor", title: "Coverage" },
+                  {
+                    key: "factor",
+                    title: "Coverage",
+                    help: (row) => componentHelp(row.factorKey, data.scoring),
+                  },
                   {
                     key: "left",
                     title: pair[0].ticker,
@@ -1043,11 +1135,28 @@ function Research({ data }) {
                   label: label(f),
                   values: [r.component_scores[f]],
                   coverage: [r.component_coverage[f]],
+                  explanation: componentHelp(f, data.scoring),
+                  summary: componentSummary(f, data.scoring),
                 }))}
               />
               <DataTable
                 className="gold-panel"
+                columns={[
+                  {
+                    key: "factor",
+                    title: "Factor",
+                    help: (row) => componentHelp(row.factorKey, data.scoring),
+                  },
+                  {
+                    key: "score",
+                    title: "Score",
+                    help: (row) => componentHelp(row.factorKey, data.scoring),
+                  },
+                  { key: "coverage", title: "Coverage" },
+                  { key: "status", title: "Status" },
+                ]}
                 rows={factors.map((f) => ({
+                  factorKey: f,
                   factor: label(f),
                   score: number(r.component_scores[f]),
                   coverage: percent(r.component_coverage[f], 0),
@@ -1489,21 +1598,6 @@ function App() {
             {data.run.provider === "demo-synthetic" && (
               <Notice tone="warning">
                 SYNTHETIC DEMO DATA — do not use for investment decisions
-              </Notice>
-            )}
-            {data.workflow_warnings?.length > 0 && (
-              <Notice tone="warning">
-                <strong>Rankings ready — SEC checks need attention</strong>
-                <p>
-                  Your stock rankings passed validation. Some additional SEC
-                  data is incomplete; it has not been substituted into your
-                  scores.
-                </p>
-                <ul>
-                  {data.workflow_warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
               </Notice>
             )}
             {data.configuration_mismatches.length > 0 && (

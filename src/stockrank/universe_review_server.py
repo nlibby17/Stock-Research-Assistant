@@ -288,7 +288,7 @@ def make_review_server(settings, proposal_path, *, job_factory=ReviewJob, report
                     )
                     validated = DiscoveryPolicy(consider_tickers=tickers)
                     confirmations.clear()
-                    job.start("nominate", {"tickers": list(validated.consider_tickers)})
+                    job.start("nominate", {"tickers": list(validated.consider_tickers), "proposal_path": str(proposal_path)})
                     return self.redirect("/progress")
                 if self.path == "/report":
                     start_report()
@@ -323,7 +323,7 @@ def make_review_server(settings, proposal_path, *, job_factory=ReviewJob, report
                             )
                             choices = "".join(
                                 f'<p><label><input type="checkbox" name="remove" value="{escape(m["ticker"], quote=True)}"> Remove {escape(m["ticker"])} · {escape(m["sector"])}</label></p>'
-                                for m in selected["members"]
+                                for m in sorted(selected["members"], key=lambda m: m["ticker"])
                                 if m["ticker"] not in selected["protected"]
                             )
                             return self.reply(
@@ -343,13 +343,13 @@ def make_review_server(settings, proposal_path, *, job_factory=ReviewJob, report
                     confirmations[nonce] = (action, profile, time.monotonic(), edits)
                     changes = (
                         f"<h2>Exact future membership</h2><p>{len(selected['members'])} / {MAX_UNIVERSE_SIZE} stocks</p><p>"
-                        + escape(", ".join(m["ticker"] for m in selected["members"]))
+                        + escape(", ".join(sorted(m["ticker"] for m in selected["members"])))
                         + "</p>"
                         "<h2>Add</h2><p>"
-                        + escape(", ".join(selected["additions"]) or "None")
+                        + escape(", ".join(sorted(selected["additions"])) or "None")
                         + "</p>"
                         "<h2>Remove</h2><p>"
-                        + escape(", ".join(r["ticker"] for r in selected["removals"]) or "None")
+                        + escape(", ".join(sorted(r["ticker"] for r in selected["removals"])) or "None")
                         + "</p>"
                         if action == "approve"
                         else "<p>Reject both alternatives in this proposal. Active membership stays unchanged.</p>"

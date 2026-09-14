@@ -99,7 +99,28 @@ def schedule_state(settings) -> dict:
     return state
 
 
-def run_discovery(settings, policy, *, preview: bool, now=None) -> Path | None:
+def reusable_nomination_evidence(settings, policy, proposal, now):
+    from zoneinfo import ZoneInfo
+
+    verify_proposal(proposal)
+    old_policy = DiscoveryPolicy(**proposal["policy"])
+    if context_key(settings, old_policy) != proposal["context"]:
+        return False
+    if replace(old_policy, consider_tickers=policy.consider_tickers) != policy:
+        return False
+    evidence = proposal["evidence"]
+    if not {"verified_rows", "verified_inputs", "verified_at"} <= evidence.keys():
+        return False
+    checked = datetime.fromisoformat(evidence["verified_at"])
+    zone = ZoneInfo(settings.raw["app"]["timezone"])
+    return (
+        checked.tzinfo is not None
+        and timedelta(0) <= now - checked <= timedelta(hours=1)
+        and checked.astimezone(zone).date() == now.astimezone(zone).date()
+    )
+
+
+def run_discovery(settings, policy, *, preview: bool, now=None, reuse_proposal=None) -> Path | None:
     now = now or datetime.now(UTC)
     with discovery_lock(settings):
         state = schedule_state(settings)
@@ -112,7 +133,14 @@ def run_discovery(settings, policy, *, preview: bool, now=None) -> Path | None:
             if not discovery_due(last, now):
                 print(f"Universe discovery not due; last successful discovery: {last}")
                 return None
-        evidence = collect_evidence(settings, policy, now=now)
+        from stockrank.universe_sources import extend_evidence
+
+        if reuse_proposal and reusable_nomination_evidence(settings, policy, reuse_proposal, now):
+            evidence = extend_evidence(settings, policy, reuse_proposal["evidence"], now=now)
+        else:
+            if reuse_proposal:
+                print("Saved evidence is older or incompatible; performing a full verification.")
+            evidence = collect_evidence(settings, policy, now=now)
         proposal = build_proposal(settings, policy, evidence, now=now, preview=preview)
         path = directory(settings) / f"proposal-{proposal['id'][:16]}.json"
         # Unique, immutable review content. Approval/rejection is stored separately.

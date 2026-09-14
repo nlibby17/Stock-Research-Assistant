@@ -7,6 +7,7 @@ import io
 import re
 import statistics
 from collections import defaultdict
+from copy import deepcopy
 from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 
@@ -132,7 +133,7 @@ def history_checks(bars, reference) -> tuple[list[str], float | None]:
 
 
 def collect_evidence(
-    settings: Settings, policy: DiscoveryPolicy, *, now: datetime, progress=print
+    settings: Settings, policy: DiscoveryPolicy, *, now: datetime, progress=print, only_tickers=None
 ) -> dict:
     """No ranking DB writes or production analysis runs. Failures remain explicit."""
     yf = YFinanceProvider._module()
@@ -150,11 +151,11 @@ def collect_evidence(
     identities = defaultdict(list)
     for identity in directory.identities:
         identities[identity.ticker].append(identity)
-    pool = {s.ticker: s for s in settings.universe}
-    for ticker in policy.consider_tickers:
+    pool = {s.ticker: s for s in settings.universe} if only_tickers is None else {}
+    for ticker in policy.consider_tickers if only_tickers is None else only_tickers:
         pool.setdefault(ticker, Security(ticker, ticker, ""))
     screens = []
-    for yahoo_sector, sector in YAHOO_SECTOR_MAP.items():
+    for yahoo_sector, sector in YAHOO_SECTOR_MAP.items() if only_tickers is None else []:
         progress(f"Discovering {sector} candidates...", flush=True)
         query = yf.EquityQuery(
             "and",
@@ -233,7 +234,7 @@ def collect_evidence(
     if "SPY" not in fresh or fresh["SPY"].status != "usable":
         raise ValueError("Current reference trading sessions unavailable")
     reference = build_reference_sessions({"SPY": fresh["SPY"].usable_bars})
-    inputs, scored_securities = {}, []
+    inputs = {}
     for index, security in enumerate(candidates):
         row = next(r for r in rows if r["ticker"] == security.ticker)
         progress(f"Validating {index + 1}/{len(candidates)}: {security.ticker}", flush=True)
@@ -319,10 +320,34 @@ def collect_evidence(
                 "company": row["company"],
                 "price_as_of": row["price_as_of"],
             }
-            scored_securities.append(Security(security.ticker, row["company"], sector))
         except Exception as exc:  # noqa: BLE001 - provider types vary; record failures explicitly.
             row["exclusions"].append(f"Provider/identity check failed: {exc}")
             errors.append(f"{security.ticker}: provider/identity check failed")
+    evidence = {
+        "verified_rows": deepcopy(rows),
+        "verified_inputs": deepcopy(inputs),
+        "verified_at": now.isoformat(),
+        "candidates": rows,
+        "sources": sources,
+        "screens": screens,
+        "errors": errors,
+        "price_warnings": price_warnings,
+        "market_date": reference[-1].isoformat(),
+        "collected_at": datetime.now(UTC).isoformat(),
+        "listing_count": len(listings),
+        "pool_size": len(pool),
+    }
+    return rescore_evidence(settings, evidence)
+
+
+def rescore_evidence(settings, evidence):
+    """Recompute peer-relative scores from verified raw metrics without provider calls."""
+    evidence = deepcopy(evidence)
+    rows = deepcopy(evidence["verified_rows"])
+    inputs = deepcopy(evidence["verified_inputs"])
+    scored_securities = [
+        Security(r["ticker"], r["company"], r["sector"]) for r in rows if r["ticker"] in inputs
+    ]
     # One class per issuer in the scoring pool, with preference for an active class.
     seen = set()
     active = {s.ticker for s in settings.universe}
@@ -350,14 +375,45 @@ def collect_evidence(
             0.60, settings.raw["app"]["minimum_overall_coverage"]
         ):
             row["exclusions"].append("Insufficient score coverage (minimum 60% or user threshold)")
-    return {
-        "candidates": rows,
-        "sources": sources,
-        "screens": screens,
-        "errors": errors,
-        "price_warnings": price_warnings,
-        "market_date": reference[-1].isoformat(),
-        "collected_at": datetime.now(UTC).isoformat(),
-        "listing_count": len(listings),
-        "pool_size": len(pool),
+    evidence["candidates"] = rows
+    evidence["pool_size"] = len(rows)
+    return evidence
+
+
+def extend_evidence(settings, policy, previous, *, now, progress=print):
+    """Verify nominations only, retaining the original evidence age and market date."""
+    known = {r["ticker"] for r in previous["verified_rows"]}
+    new = sorted(set(policy.consider_tickers) - known)
+    automatic = {t for screen in previous["screens"] for t in screen["symbols"]}
+    retained = automatic | {s.ticker for s in settings.universe} | set(policy.consider_tickers)
+    evidence = deepcopy(previous)
+    evidence["verified_rows"] = [r for r in evidence["verified_rows"] if r["ticker"] in retained]
+    evidence["verified_inputs"] = {
+        t: v for t, v in evidence["verified_inputs"].items() if t in retained
     }
+    evidence["errors"] = [e for e in evidence["errors"] if e.split(":", 1)[0] in retained]
+    if new:
+        progress(
+            f"Reusing verified candidates; checking only {len(new)} new ticker(s): {', '.join(new)}",
+            flush=True,
+        )
+        addition = collect_evidence(settings, policy, now=now, progress=progress, only_tickers=new)
+        if addition["market_date"] != previous["market_date"]:
+            progress(
+                "The market date changed; refreshing all candidates for consistent comparisons.",
+                flush=True,
+            )
+            return collect_evidence(settings, policy, now=now, progress=progress)
+        evidence["verified_rows"].extend(addition["verified_rows"])
+        evidence["verified_inputs"].update(addition["verified_inputs"])
+        evidence["errors"].extend(addition["errors"])
+        evidence["price_warnings"].extend(addition["price_warnings"])
+        evidence["sources"].extend(addition["sources"])
+    else:
+        progress(
+            "These tickers were already checked; reusing verified evidence without downloads.",
+            flush=True,
+        )
+    evidence["collected_at"] = now.isoformat()
+    # verified_at stays at the oldest reused evidence date; repeated edits cannot extend its TTL.
+    return rescore_evidence(settings, evidence)
