@@ -86,7 +86,24 @@ Python 3.12 and again on 3.14; lint and CI YAML validation also passed.
 CI now covers all four Python versions on Windows/macOS/Linux plus the old Mac
 dependency profile on current macOS. Hosted CI and a real macOS 11 native-import
 smoke check remain release validation; wheel availability is not native execution.
-Workstreams 4–7 remain planned.
+At that checkpoint, workstreams 4–7 remained planned.
+
+**Step 4 implementation update — 2026-10-13:** The user authorized the typed
+pipeline/scoring contract, with no commit or push until separately requested.
+The shared `ScoringInput` contract now covers both producers, scoring and peer
+counts, and discovery's retained evidence/rescoring path. Scoped mypy checks and
+positive/negative contract tests are included, with development tools in both
+dependency locks and checks in CI. See [the contract guide](SCORING_INPUT_CONTRACT.md).
+Production calculations, missing-value behavior and serialization are unchanged.
+Workstreams 5–6 remain planned; the broad Markdown audit and React screenshot
+refresh follow those changes. This is separate from the targeted documentation
+needed to use and review step 4.
+
+Local verification: 534 Python tests passed and four platform-specific tests
+skipped on Windows/Python 3.14; the four-module mypy check, repository lint, lock
+integrity and all 18 supported wheel-target checks passed. Existing package pins
+are unchanged; only type-checking tools and their dependencies were added. Hosted
+CI and native Mac execution have not run for this uncommitted change.
 
 | Suggested order | User item | Verified finding and proposed scope | Acceptance gate for future implementation |
 |---|---|---|---|
@@ -106,7 +123,8 @@ rewrite now.
 The CLI requirement supersedes earlier advice that treated extraction as conditional
 on another maintenance problem. The implementation method remains deliberate and
 behavior-preserving; the earlier campaign closure does not cancel this newly required
-work. Implementation of the remaining workstreams is still paused.
+work. Step 4 is authorized as recorded above; implementation of workstreams 5–6
+remains paused until requested.
 
 Dependency order: provider tests precede concurrency; define Python/lock support
 before adding mypy to the managed development environment. Typing and CLI extraction

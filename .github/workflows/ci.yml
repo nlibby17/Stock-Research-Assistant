@@ -52,6 +52,10 @@ jobs:
         shell: bash
         run: '"$PROJECT_PYTHON" -m pytest -q'
 
+      - name: Check scoring input contract
+        shell: bash
+        run: '"$PROJECT_PYTHON" -m mypy'
+
   dependency-locks:
     name: Lock integrity and supported wheel targets
     runs-on: ubuntu-latest
@@ -81,6 +85,7 @@ jobs:
       - run: .venv/bin/python -m pip check
       - run: .venv/bin/python -c "import pyarrow, numpy, pandas, curl_cffi, yfinance, streamlit"
       - run: .venv/bin/python -m pytest -q
+      - run: .venv/bin/python -m mypy
 
   frontend:
     name: React views and bundled assets

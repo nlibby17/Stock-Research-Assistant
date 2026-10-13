@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import TypeGuard
 
 from stockrank.config import Settings
 from stockrank.models import ScoredSecurity, Security
+from stockrank.scoring_inputs import ScoringInput
 
 
-def _usable(value: float | None, direction: str) -> bool:
+def _usable(value: float | None, direction: str) -> TypeGuard[float]:
     if value is None or not math.isfinite(value):
         return False
     if direction == "lower_positive":
@@ -42,7 +43,7 @@ def percentile_scores(
     return output
 
 
-def metric_peer_counts(settings: Settings, inputs: dict[str, dict[str, Any]]) -> dict[str, int]:
+def metric_peer_counts(settings: Settings, inputs: dict[str, ScoringInput]) -> dict[str, int]:
     return {
         metric: sum(
             _usable(values["metrics"].get(metric), settings.directions[metric])
@@ -99,7 +100,7 @@ def candidate_eligibility_reasons(
 
 def score_universe(
     settings: Settings,
-    inputs: dict[str, dict[str, Any]],
+    inputs: dict[str, ScoringInput],
 ) -> list[ScoredSecurity]:
     metric_scores: dict[str, dict[str, float | None]] = {}
     all_metric_names = {

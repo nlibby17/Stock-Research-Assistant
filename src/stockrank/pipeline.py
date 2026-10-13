@@ -14,11 +14,12 @@ from stockrank.config import Settings
 from stockrank.data import DemoProvider, MarketDataProvider, YFinanceProvider
 from stockrank.freshness import PriceFreshness, assess_price_bars
 from stockrank.metrics import apply_sector_conventions, calculate_metrics
-from stockrank.models import AnalysisRun, PriceBar, Security
+from stockrank.models import AnalysisRun, FundamentalSnapshot, PriceBar, Security
 from stockrank.price_integrity import assess_price_series, build_reference_sessions
 from stockrank.reporting import write_report_bundle
 from stockrank.reproducibility import REPRODUCIBILITY_STATUS, build_run_manifest
 from stockrank.scoring import metric_peer_counts, score_universe
+from stockrank.scoring_inputs import ScoringInput
 from stockrank.storage import SCHEMA_VERSION, Storage
 from stockrank.summaries import sector_momentum_leaders
 
@@ -208,7 +209,7 @@ def run_analysis(
             storage.set_cache_status(cache_key, provider.name, 0, "error", str(error))
             logger.exception("Price refresh failed")
 
-    fundamentals: dict[str, Any] = {}
+    fundamentals: dict[str, FundamentalSnapshot] = {}
     fundamental_notes: dict[str, list[str]] = {}
     fundamental_lineage: dict[str, dict[str, Any]] = {}
     fundamental_ttl = float(settings.raw["provider"]["fundamental_cache_ttl_hours"])
@@ -307,7 +308,7 @@ def run_analysis(
             "Trading-session reference could not be built; session-based metrics are unavailable"
         )
 
-    inputs: dict[str, dict[str, Any]] = {}
+    inputs: dict[str, ScoringInput] = {}
     all_price_dates: list[date] = []
     price_lineage: dict[str, dict[str, Any]] = {}
     for security in settings.universe:

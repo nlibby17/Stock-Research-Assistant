@@ -7,9 +7,11 @@ import io
 import re
 import statistics
 from collections import defaultdict
+from collections.abc import Callable, Sequence
 from copy import deepcopy
 from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
+from typing import NotRequired, TypedDict
 
 import requests
 
@@ -19,15 +21,60 @@ from stockrank.data import YFinanceProvider
 from stockrank.data.sec import SecClient, SecIdentityDirectory, SecSubmissions, normalize_sec_ticker
 from stockrank.freshness import assess_price_bars
 from stockrank.metrics import apply_sector_conventions, calculate_metrics
-from stockrank.models import Security
+from stockrank.models import PriceBar, Security
 from stockrank.price_integrity import assess_price_series, build_reference_sessions
 from stockrank.scoring import score_universe
+from stockrank.scoring_inputs import ScoringInput
 from stockrank.universe_discovery import DiscoveryPolicy
 
 LISTING_URLS = (
     "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt",
     "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt",
 )
+
+
+class DiscoveryRow(TypedDict):
+    """Candidate metadata kept beside, rather than mixed into, scoring inputs."""
+
+    ticker: str
+    company: str
+    sector: str
+    cik: str | None
+    listing: dict | None
+    exclusions: list[str]
+    warnings: list[str]
+    score: float | None
+    coverage: float | None
+    price_as_of: NotRequired[str]
+    history_sessions: NotRequired[int]
+    median_dollar_volume_20d: NotRequired[float | None]
+    sec_filings_checked: NotRequired[list[dict]]
+    sec_history_sources: NotRequired[list[str]]
+    sec_source: NotRequired[dict[str, str]]
+    fundamentals: NotRequired[dict]
+    metrics: NotRequired[dict[str, float | None]]
+    component_scores: NotRequired[dict[str, float | None]]
+
+
+class DiscoveryEvidence(TypedDict):
+    """Preserve the scoring contract through evidence copying and rescoring.
+
+    Provider/listing documents remain separate, existing dynamic payloads; this
+    contract does not claim to validate external JSON at runtime.
+    """
+
+    verified_rows: list[DiscoveryRow]
+    verified_inputs: dict[str, ScoringInput]
+    verified_at: str
+    candidates: list[DiscoveryRow]
+    sources: list[dict[str, str]]
+    screens: list[dict]
+    errors: list[str]
+    price_warnings: list[str]
+    market_date: str
+    collected_at: str
+    listing_count: int
+    pool_size: int
 
 
 def listing_rows(text: str, *, nasdaq: bool, now: datetime) -> dict[str, dict]:
@@ -80,7 +127,8 @@ def listing_exclusions(row: dict | None) -> list[str]:
 def submission_checks(
     payload: dict, ticker: str, *, today: date, annual_history_confirmed: bool = False
 ) -> tuple[list[str], list[str]]:
-    reasons, warnings = [], []
+    reasons: list[str] = []
+    warnings: list[str] = []
     if normalize_sec_ticker(ticker) not in {
         normalize_sec_ticker(t) for t in payload.get("tickers", [])
     }:
@@ -116,7 +164,9 @@ def submission_checks(
     return reasons, warnings
 
 
-def history_checks(bars, reference) -> tuple[list[str], float | None]:
+def history_checks(
+    bars: Sequence[PriceBar], reference: Sequence[date]
+) -> tuple[list[str], float | None]:
     """Eligibility uses completed data only; callers apply the shared freshness gate first."""
     reasons = []
     if not bars or not reference:
@@ -133,8 +183,13 @@ def history_checks(bars, reference) -> tuple[list[str], float | None]:
 
 
 def collect_evidence(
-    settings: Settings, policy: DiscoveryPolicy, *, now: datetime, progress=print, only_tickers=None
-) -> dict:
+    settings: Settings,
+    policy: DiscoveryPolicy,
+    *,
+    now: datetime,
+    progress: Callable[..., None] = print,
+    only_tickers: list[str] | None = None,
+) -> DiscoveryEvidence:
     """No ranking DB writes or production analysis runs. Failures remain explicit."""
     yf = YFinanceProvider._module()
     yf.set_tz_cache_location(str(settings.runtime_dir / "cache" / "yfinance-discovery"))
@@ -191,7 +246,8 @@ def collect_evidence(
                 )
     if len(pool) > 11 * policy.per_sector + len(settings.universe) + len(policy.consider_tickers):
         raise ValueError("Discovery pool exceeded bound")
-    rows, candidates = [], []
+    rows: list[DiscoveryRow] = []
+    candidates: list[Security] = []
     for security in sorted(pool.values(), key=lambda s: s.ticker):
         reasons = listing_exclusions(listings.get(security.ticker))
         matched = identities.get(normalize_sec_ticker(security.ticker), [])
@@ -199,7 +255,7 @@ def collect_evidence(
             reasons.append("SEC identity missing or ambiguous; no automatic identity override")
         elif matched[0].exchange not in {"Nasdaq", "NYSE", "NYSE American"}:
             reasons.append("SEC exchange is outside supported scope")
-        row = {
+        row: DiscoveryRow = {
             "ticker": security.ticker,
             "company": security.company,
             "sector": security.sector,
@@ -221,9 +277,9 @@ def collect_evidence(
         now.date() + timedelta(days=1),
     )
     fresh = {}
-    for ticker, bars in prices.items():
+    for ticker, downloaded_bars in prices.items():
         fresh[ticker] = assess_price_bars(
-            bars,
+            downloaded_bars,
             now=datetime.now(UTC),
             timezone_name=settings.raw["app"]["timezone"],
             completion_buffer_minutes=settings.raw["provider"][
@@ -234,7 +290,7 @@ def collect_evidence(
     if "SPY" not in fresh or fresh["SPY"].status != "usable":
         raise ValueError("Current reference trading sessions unavailable")
     reference = build_reference_sessions({"SPY": fresh["SPY"].usable_bars})
-    inputs = {}
+    inputs: dict[str, ScoringInput] = {}
     for index, security in enumerate(candidates):
         row = next(r for r in rows if r["ticker"] == security.ticker)
         progress(f"Validating {index + 1}/{len(candidates)}: {security.ticker}", flush=True)
@@ -298,12 +354,12 @@ def collect_evidence(
             if fundamental is None:
                 raise ValueError("Fundamental summary unavailable")
             row["fundamentals"] = fundamental.to_dict()
-            sector = YAHOO_SECTOR_MAP.get(fundamental.sector or "")
-            if sector is None:
+            validated_sector = YAHOO_SECTOR_MAP.get(fundamental.sector or "")
+            if validated_sector is None:
                 row["exclusions"].append("Sector cannot be validated")
                 continue
             row["company"] = fundamental.company or security.company
-            row["sector"] = sector
+            row["sector"] = validated_sector
             validity = settings.raw["scoring"]["validity"]
             metrics, warnings = calculate_metrics(
                 bars,
@@ -312,18 +368,18 @@ def collect_evidence(
                 minimum_debt_to_equity=validity["minimum_debt_to_equity"],
                 maximum_return_on_equity=validity["maximum_return_on_equity"],
             )
-            metrics, sector_warnings = apply_sector_conventions(metrics, sector)
+            metrics, sector_warnings = apply_sector_conventions(metrics, validated_sector)
             row["warnings"].extend(warnings + sector_warnings)
             inputs[security.ticker] = {
                 "metrics": metrics,
-                "sector": sector,
+                "sector": validated_sector,
                 "company": row["company"],
                 "price_as_of": row["price_as_of"],
             }
         except Exception as exc:  # noqa: BLE001 - provider types vary; record failures explicitly.
             row["exclusions"].append(f"Provider/identity check failed: {exc}")
             errors.append(f"{security.ticker}: provider/identity check failed")
-    evidence = {
+    evidence: DiscoveryEvidence = {
         "verified_rows": deepcopy(rows),
         "verified_inputs": deepcopy(inputs),
         "verified_at": now.isoformat(),
@@ -340,7 +396,7 @@ def collect_evidence(
     return rescore_evidence(settings, evidence)
 
 
-def rescore_evidence(settings, evidence):
+def rescore_evidence(settings: Settings, evidence: DiscoveryEvidence) -> DiscoveryEvidence:
     """Recompute peer-relative scores from verified raw metrics without provider calls."""
     evidence = deepcopy(evidence)
     rows = deepcopy(evidence["verified_rows"])
@@ -365,10 +421,12 @@ def rescore_evidence(settings, evidence):
     for result in scored:
         row = next(r for r in rows if r["ticker"] == result.ticker)
         row.update(
-            score=result.overall_score,
-            coverage=result.overall_coverage,
-            metrics=result.metrics,
-            component_scores=result.component_scores,
+            {
+                "score": result.overall_score,
+                "coverage": result.overall_coverage,
+                "metrics": result.metrics,
+                "component_scores": result.component_scores,
+            }
         )
         row["warnings"].extend(result.warnings)
         if result.overall_score is None or result.overall_coverage < max(
@@ -380,7 +438,14 @@ def rescore_evidence(settings, evidence):
     return evidence
 
 
-def extend_evidence(settings, policy, previous, *, now, progress=print):
+def extend_evidence(
+    settings: Settings,
+    policy: DiscoveryPolicy,
+    previous: DiscoveryEvidence,
+    *,
+    now: datetime,
+    progress: Callable[..., None] = print,
+) -> DiscoveryEvidence:
     """Verify nominations only, retaining the original evidence age and market date."""
     known = {r["ticker"] for r in previous["verified_rows"]}
     new = sorted(set(policy.consider_tickers) - known)

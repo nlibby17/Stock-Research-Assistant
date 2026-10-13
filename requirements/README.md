@@ -3,6 +3,10 @@
 Guided setup, updates and the Python CI matrix consume these locks. End users do
 not need uv. The frontend continues to use its existing `package-lock.json`.
 
+The development dependencies include mypy and Requests stubs for the bounded
+[scoring input contract check](../docs/SCORING_INPUT_CONTRACT.md). Run `python -m mypy`
+with the project environment from the repository root; CI runs the same check.
+
 | Platform | Standard CPython | Dependency lock |
 |---|---|---|
 | Windows 10/11, x64 Intel/AMD | 3.11, 3.12, 3.13, 3.14 | `standard.lock` |

@@ -56,6 +56,12 @@ pipeline/scoring contract, alongside four reliability/performance items. These a
 planning requests, not approval to implement or to reopen the closed campaign.
 See [the seven-item roadmap intake](ROADMAP.md#reliability-and-maintainability-intake--2026-09-12).
 
+**Update — 2026-10-13:** The user authorized implementation of the typed scoring
+input workstream only, with no commit/push until separately requested. Its bounded
+contract, checks and unchanged runtime semantics are described in
+[SCORING_INPUT_CONTRACT.md](SCORING_INPUT_CONTRACT.md). The CLI split remains planned.
+The original intake below records the earlier approval state.
+
 - **CLI split: REQUIRED in the future plan (explicit user direction).** Split the
   1,871-line file into smaller, cohesive command modules with a thin entry point.
   Readability and the ability to explain the architecture in an interview are
