@@ -62,6 +62,27 @@ contract, checks and unchanged runtime semantics are described in
 [SCORING_INPUT_CONTRACT.md](SCORING_INPUT_CONTRACT.md). The CLI split remains planned.
 The original intake below records the earlier approval state.
 
+**Step 6 authorization and implementation — 2026-10-13:** The user explicitly
+authorized the CLI split and required verification before a separately approved
+commit/push. This supersedes the intake's earlier pending-implementation language
+for this bounded task only; the closed structural campaign remains closed.
+The extraction groups handlers by command responsibility and retains the existing
+parser, daily-workflow runner, universe commands, and application services. The
+universe report worker calls the new workflow module directly; no command module
+imports the CLI entry point. See [CLI command ownership](CLI_ARCHITECTURE.md) for
+the design and the roadmap for verification/release status.
+
+Local completion evidence: the entry point shrank from 1,871 to 59 lines, and the
+eight command modules have explicit responsibilities with no import back into
+`cli`. All moved function syntax trees and the public parser surface match the
+baseline. The full suite passed after each slice; the final result is 629 passed,
+four platform-specific skips on Windows/Python 3.14. Lint, scoped typing, lock
+integrity, installed entry-point help, and isolated wheel/import checks passed.
+This preserves calculations, provider behavior, persistence, command output/exit
+codes, and eight-step/single-dashboard orchestration. The user subsequently
+accepted the result and authorized commit/push on 2026-10-13; hosted CI remains
+release verification after the push. The broad Markdown/screenshot audit is separate.
+
 - **CLI split: REQUIRED in the future plan (explicit user direction).** Split the
   1,871-line file into smaller, cohesive command modules with a thin entry point.
   Readability and the ability to explain the architecture in an interview are

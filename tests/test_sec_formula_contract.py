@@ -5,7 +5,7 @@ from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 
-from stockrank import cli
+from stockrank import sec_financial_commands
 from stockrank.data.sec import SecConceptSpec
 from stockrank.sec_fact_vintages import (
     reconstruct_sec_company_fact,
@@ -204,11 +204,11 @@ def test_financial_build_passes_the_effective_concept_policy_to_calculator(tmp_p
         def __init__(self, *, concept_specs):
             captured["concept_specs"] = concept_specs
 
-    monkeypatch.setattr(cli, "load_settings", lambda: settings)
-    monkeypatch.setattr(cli, "load_sec_concept_specs", lambda current: specs)
-    monkeypatch.setattr(cli, "SecFinancialCalculator", CapturingCalculator)
+    monkeypatch.setattr(sec_financial_commands, "load_settings", lambda: settings)
+    monkeypatch.setattr(sec_financial_commands, "load_sec_concept_specs", lambda current: specs)
+    monkeypatch.setattr(sec_financial_commands, "SecFinancialCalculator", CapturingCalculator)
 
-    result = cli.command_sec_financials_build(Namespace(as_of=None, ticker=None))
+    result = sec_financial_commands.command_sec_financials_build(Namespace(as_of=None, ticker=None))
 
     assert result == 0
     assert captured["concept_specs"] == specs

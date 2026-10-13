@@ -8,10 +8,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from stockrank import cli
-from stockrank.cli import _financial_as_of
+from stockrank import sec_financial_commands
 from stockrank.data.sec import SecConceptSpec
 from stockrank.models import SecCompanyFact
+from stockrank.sec_financial_commands import _financial_as_of
 from stockrank.sec_financials import FORMULA_VERSION, SecFinancialCalculator, formula_manifest
 from stockrank.storage import Storage
 
@@ -655,11 +655,11 @@ def test_historical_build_reads_vintages_while_current_build_keeps_active_facts(
         def record_provider_health(self, health):
             captured["health"] = health
 
-    monkeypatch.setattr(cli, "load_settings", lambda: settings)
-    monkeypatch.setattr(cli, "Storage", VintageStorage)
-    monkeypatch.setattr(cli, "load_sec_concept_specs", lambda current: ())
+    monkeypatch.setattr(sec_financial_commands, "load_settings", lambda: settings)
+    monkeypatch.setattr(sec_financial_commands, "Storage", VintageStorage)
+    monkeypatch.setattr(sec_financial_commands, "load_sec_concept_specs", lambda current: ())
 
-    result = cli.command_sec_financials_build(
+    result = sec_financial_commands.command_sec_financials_build(
         Namespace(as_of=requested_cutoff.isoformat(), ticker=None)
     )
 
@@ -667,7 +667,7 @@ def test_historical_build_reads_vintages_while_current_build_keeps_active_facts(
     assert captured["vintage_request"] == ("TEST", requested_cutoff)
     assert "current_request" not in captured
 
-    result = cli.command_sec_financials_build(Namespace(as_of=None, ticker=None))
+    result = sec_financial_commands.command_sec_financials_build(Namespace(as_of=None, ticker=None))
 
     assert result == 1
     assert captured["current_request"] == "TEST"

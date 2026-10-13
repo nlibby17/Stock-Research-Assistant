@@ -4,7 +4,7 @@ from argparse import Namespace
 from datetime import UTC, date, datetime, timedelta
 from types import SimpleNamespace
 
-from stockrank import cli
+from stockrank import provider_commands
 
 
 def test_shadow_command_records_and_enforces_the_actual_formula_contract(monkeypatch, capsys):
@@ -85,14 +85,16 @@ def test_shadow_command_records_and_enforces_the_actual_formula_contract(monkeyp
             ),
         )
 
-    monkeypatch.setattr(cli, "load_settings", lambda: settings)
-    monkeypatch.setattr(cli, "Storage", lambda path: storage)
-    monkeypatch.setattr(cli, "load_provider_comparison_config", lambda current: comparison_config)
-    monkeypatch.setattr(cli, "load_sec_concept_specs", lambda current: ())
-    monkeypatch.setattr(cli, "formula_manifest", lambda *, concept_specs: manifest)
-    monkeypatch.setattr(cli, "compare_provider_metrics", comparison)
+    monkeypatch.setattr(provider_commands, "load_settings", lambda: settings)
+    monkeypatch.setattr(provider_commands, "Storage", lambda path: storage)
+    monkeypatch.setattr(
+        provider_commands, "load_provider_comparison_config", lambda current: comparison_config
+    )
+    monkeypatch.setattr(provider_commands, "load_sec_concept_specs", lambda current: ())
+    monkeypatch.setattr(provider_commands, "formula_manifest", lambda *, concept_specs: manifest)
+    monkeypatch.setattr(provider_commands, "compare_provider_metrics", comparison)
 
-    result = cli.command_provider_shadow_run(Namespace(ticker=None))
+    result = provider_commands.command_provider_shadow_run(Namespace(ticker=None))
 
     assert result == 0
     assert storage.saved_run.evidence_qualified is True

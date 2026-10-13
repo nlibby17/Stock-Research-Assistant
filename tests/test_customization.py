@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from stockrank import cli, customization
+from stockrank import configuration_commands, customization
 from stockrank.config import Settings, load_settings, validate_settings
 from stockrank.customization import (
     enrich_universe,
@@ -73,10 +73,9 @@ def test_profiles_are_deterministic_normalized_and_meaningful():
     assert sum(aggressive_growth.values()) == pytest.approx(1)
     assert aggressive_growth["growth"] > balanced["growth"]
     assert conservative["risk"] > balanced["risk"]
-    assert (
-        parse_component_weights("growth=.25,valuation=.20,quality=.25,momentum=.20,risk=.10")
-        == pytest.approx(balanced, rel=1e-12, abs=1e-12)
-    )
+    assert parse_component_weights(
+        "growth=.25,valuation=.20,quality=.25,momentum=.20,risk=.10"
+    ) == pytest.approx(balanced, rel=1e-12, abs=1e-12)
     with pytest.raises(ValueError, match="total 1.0"):
         parse_component_weights("growth=.50,valuation=.20,quality=.25,momentum=.20,risk=.10")
 
@@ -243,7 +242,7 @@ def test_noninteractive_configuration_writes_local_files_and_loads_them(tmp_path
         tickers=None,
         universe_file=str(custom),
     )
-    assert cli.command_configure(args) == 0
+    assert configuration_commands.command_configure(args) == 0
     settings = load_settings(tmp_path)
     assert settings.uses_local_preferences
     assert settings.profile_name == "quality"
@@ -255,7 +254,7 @@ def test_noninteractive_configuration_writes_local_files_and_loads_them(tmp_path
     updated = Namespace(**vars(args))
     updated.profile = "growth"
     updated.universe_file = None
-    assert cli.command_configure(updated) == 0
+    assert configuration_commands.command_configure(updated) == 0
     assert (tmp_path / "config" / "preferences.local.toml.bak").is_file()
 
 
@@ -286,9 +285,7 @@ def test_personalization_stage_failure_leaves_prior_pair_unchanged(
 
 
 @pytest.mark.parametrize("failed_backup", [1, 2])
-def test_personalization_backup_failure_restores_prior_pair(
-    tmp_path, monkeypatch, failed_backup
-):
+def test_personalization_backup_failure_restores_prior_pair(tmp_path, monkeypatch, failed_backup):
     _project_config(tmp_path)
     expected = _seed_personalization(tmp_path)
     original = customization._backup_active_file
@@ -303,7 +300,9 @@ def test_personalization_backup_failure_restores_prior_pair(
 
     monkeypatch.setattr(customization, "_backup_active_file", fail_selected_backup)
 
-    with pytest.raises(customization.PersonalizationUpdateError, match="Prior configuration restored"):
+    with pytest.raises(
+        customization.PersonalizationUpdateError, match="Prior configuration restored"
+    ):
         customization.save_local_customization(
             tmp_path, **_personalization_kwargs(profile="growth")
         )
@@ -329,7 +328,9 @@ def test_personalization_replacement_failure_restores_prior_pair(
 
     monkeypatch.setattr(customization, "_install_staged_file", fail_selected_replacement)
 
-    with pytest.raises(customization.PersonalizationUpdateError, match="Prior configuration restored"):
+    with pytest.raises(
+        customization.PersonalizationUpdateError, match="Prior configuration restored"
+    ):
         customization.save_local_customization(
             tmp_path, **_personalization_kwargs(profile="growth")
         )
@@ -351,7 +352,9 @@ def test_first_personalization_failure_restores_absent_pair(tmp_path, monkeypatc
 
     monkeypatch.setattr(customization, "_install_staged_file", fail_second_replacement)
 
-    with pytest.raises(customization.PersonalizationUpdateError, match="Prior configuration restored"):
+    with pytest.raises(
+        customization.PersonalizationUpdateError, match="Prior configuration restored"
+    ):
         customization.save_local_customization(tmp_path, **_personalization_kwargs())
 
     assert not (tmp_path / "config" / "preferences.local.toml").exists()
@@ -368,7 +371,9 @@ def test_personalization_reload_failure_restores_prior_pair(tmp_path, monkeypatc
 
     monkeypatch.setattr(customization, "_reload_local_customization", fail_reload)
 
-    with pytest.raises(customization.PersonalizationUpdateError, match="Prior configuration restored"):
+    with pytest.raises(
+        customization.PersonalizationUpdateError, match="Prior configuration restored"
+    ):
         customization.save_local_customization(
             tmp_path, **_personalization_kwargs(profile="growth")
         )
@@ -420,7 +425,9 @@ def test_personalization_reset_failure_restores_prior_pair(tmp_path, monkeypatch
 
     monkeypatch.setattr(customization, "_backup_active_file", fail_selected_backup)
 
-    with pytest.raises(customization.PersonalizationUpdateError, match="Prior configuration restored"):
+    with pytest.raises(
+        customization.PersonalizationUpdateError, match="Prior configuration restored"
+    ):
         customization.reset_local_customization(tmp_path)
 
     _assert_personalization_bytes(tmp_path, expected)
@@ -446,7 +453,7 @@ def test_configure_reports_transaction_failure_without_traceback(tmp_path, monke
     def fail_save(*_args, **_kwargs):
         raise customization.PersonalizationUpdateError("controlled transaction failure")
 
-    monkeypatch.setattr(cli, "save_local_customization", fail_save)
+    monkeypatch.setattr(configuration_commands, "save_local_customization", fail_save)
     args = Namespace(
         reset=False,
         yes=True,
@@ -462,7 +469,7 @@ def test_configure_reports_transaction_failure_without_traceback(tmp_path, monke
         use_default_universe=False,
     )
 
-    assert cli.command_configure(args) == 2
+    assert configuration_commands.command_configure(args) == 2
     assert "controlled transaction failure" in capsys.readouterr().err
 
 
@@ -475,9 +482,9 @@ def test_configure_reset_reports_transaction_failure_without_traceback(
     def fail_reset(_root):
         raise customization.PersonalizationUpdateError("controlled reset transaction failure")
 
-    monkeypatch.setattr(cli, "reset_local_customization", fail_reset)
+    monkeypatch.setattr(configuration_commands, "reset_local_customization", fail_reset)
 
-    assert cli.command_configure(Namespace(reset=True)) == 2
+    assert configuration_commands.command_configure(Namespace(reset=True)) == 2
     assert "controlled reset transaction failure" in capsys.readouterr().err
 
 

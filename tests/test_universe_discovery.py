@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from stockrank import cli, customization
+from stockrank import cli, customization, workflow_commands
 from stockrank import universe_commands as commands
 from stockrank.config import VALID_SECTORS, load_settings
 from stockrank.models import PriceBar
@@ -366,15 +366,19 @@ def test_sec_identity_spac_and_missing_history():
 
 def test_morning_discovery_failure_does_not_block_report_dashboard(monkeypatch):
     calls = []
-    monkeypatch.setattr(cli, "command_daily_report", lambda args: calls.append("report") or 0)
-    monkeypatch.setattr(cli, "command_dashboard", lambda args: calls.append("dashboard") or 0)
+    monkeypatch.setattr(
+        workflow_commands, "command_daily_report", lambda args: calls.append("report") or 0
+    )
+    monkeypatch.setattr(
+        workflow_commands, "command_dashboard", lambda args: calls.append("dashboard") or 0
+    )
 
     def fail():
         calls.append("discovery")
         raise ValueError("Invalid provider state")
 
     monkeypatch.setattr(commands, "load_settings", fail)
-    assert cli.command_morning(Namespace(force=False)) == 0
+    assert workflow_commands.command_morning(Namespace(force=False)) == 0
     assert calls == ["discovery", "report", "dashboard"]
 
 
@@ -581,7 +585,7 @@ def test_decision_runs_eight_steps_once_and_hands_off_one_dashboard(
         assert request.job.calls[0] == request.job.calls[1]
 
     active = load_settings(settings.root)
-    monkeypatch.setattr(cli, "load_settings", lambda: active)
+    monkeypatch.setattr(workflow_commands, "load_settings", lambda: active)
     monkeypatch.chdir(settings.root)
     steps = []
     names = [
@@ -605,7 +609,7 @@ def test_decision_runs_eight_steps_once_and_hands_off_one_dashboard(
         return run
 
     for name in names:
-        monkeypatch.setattr(cli, name, handler(name))
+        monkeypatch.setattr(workflow_commands, name, handler(name))
     payload = request.job.calls[0][1]
     request.job.result = universe_jobs.execute(
         {
@@ -916,9 +920,9 @@ def test_sec_failure_does_not_block_validated_rankings_but_validation_does(
     from stockrank.pipeline import run_analysis
 
     monkeypatch.chdir(settings.root)
-    monkeypatch.setattr(cli, "load_settings", lambda: settings)
+    monkeypatch.setattr(workflow_commands, "load_settings", lambda: settings)
     for name in ("command_config_check", "command_sec_health", "command_sec_filings_sync"):
-        monkeypatch.setattr(cli, name, lambda args: 0)
+        monkeypatch.setattr(workflow_commands, name, lambda args: 0)
 
     def unavailable(args):
         print("WARNING: GEV: SEC duration fact is missing a start date.")
@@ -929,14 +933,14 @@ def test_sec_failure_does_not_block_validated_rankings_but_validation_does(
         "command_sec_financials_build",
         "command_provider_shadow_run",
     ):
-        monkeypatch.setattr(cli, name, unavailable)
+        monkeypatch.setattr(workflow_commands, name, unavailable)
 
     def ranking(args):
         run_analysis(settings, demo=True)
         return 0
 
-    monkeypatch.setattr(cli, "_command_run_analysis", ranking)
-    monkeypatch.setattr(cli, "command_validate", lambda args: validation_exit)
+    monkeypatch.setattr(workflow_commands, "_command_run_analysis", ranking)
+    monkeypatch.setattr(workflow_commands, "command_validate", lambda args: validation_exit)
     receipt = {
         "version": settings.raw["universe"]["name"],
         "members": [asdict(s) for s in settings.universe],
@@ -1050,17 +1054,19 @@ def test_morning_opens_due_review_instead_of_old_dashboard(settings, monkeypatch
     calls = []
     path = settings.root / "weekly.json"
     monkeypatch.setattr(
-        cli, "command_daily_report", lambda args: pytest.fail("Report must wait for a decision")
+        workflow_commands,
+        "command_daily_report",
+        lambda args: pytest.fail("Report must wait for a decision"),
     )
-    monkeypatch.setattr(cli, "load_settings", lambda: settings)
+    monkeypatch.setattr(workflow_commands, "load_settings", lambda: settings)
     monkeypatch.setattr(commands, "run_due_discovery", lambda: path)
     monkeypatch.setattr(
         universe_review_server, "serve_review", lambda s, p, **kw: calls.append(("review", p, kw))
     )
     monkeypatch.setattr(
-        cli, "command_dashboard", lambda args: pytest.fail("Must show review first")
+        workflow_commands, "command_dashboard", lambda args: pytest.fail("Must show review first")
     )
-    assert cli.command_morning(Namespace(force=force)) == 0
+    assert workflow_commands.command_morning(Namespace(force=force)) == 0
     assert calls == [("review", path, {"report_force": force})]
 
 
@@ -1082,8 +1088,8 @@ def test_morning_sec_warning_still_reaches_discovery(settings, monkeypatch):
         print("WARNING: GEV missing a start date")
         return 1
 
-    monkeypatch.setattr(cli, "command_daily_report", daily)
-    monkeypatch.setattr(cli, "load_settings", lambda: settings)
+    monkeypatch.setattr(workflow_commands, "command_daily_report", daily)
+    monkeypatch.setattr(workflow_commands, "load_settings", lambda: settings)
     monkeypatch.setattr(
         dashboard_data,
         "load_dashboard",
@@ -1097,8 +1103,10 @@ def test_morning_sec_warning_still_reaches_discovery(settings, monkeypatch):
         },
     )
     monkeypatch.setattr(commands, "run_due_discovery", lambda: calls.append("discovery"))
-    monkeypatch.setattr(cli, "command_dashboard", lambda args: calls.append("dashboard") or 0)
-    assert cli.command_morning(Namespace(force=False)) == 0
+    monkeypatch.setattr(
+        workflow_commands, "command_dashboard", lambda args: calls.append("dashboard") or 0
+    )
+    assert workflow_commands.command_morning(Namespace(force=False)) == 0
     assert calls == ["discovery", "dashboard"]
     status = json.loads(
         (settings.runtime_dir / "universe/report-status-morning-test.json").read_text()

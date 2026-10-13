@@ -9,7 +9,19 @@ reliability, maintainability, useful analysis, and then convenience. No step may
 connect to a brokerage or execute a trade. Paid services, public deployment,
 background automation, or OpenAI API integration require separate user approval.
 
-## Current checkpoint / next-session handoff — 2026-09-09
+## Current checkpoint / next-session handoff — 2026-10-13
+
+- Reliability steps 1–5 are committed and pushed. Step 5 is `a4ca37e`; all 15
+  hosted CI jobs passed. Its release details appear in the intake below.
+- The user authorized step 6, the CLI module split, with commit/push requiring
+  separate permission. Implementation and local verification are complete;
+  the user accepted the result and authorized commit/push on 2026-10-13.
+  See [CLI command ownership](CLI_ARCHITECTURE.md) for the module map.
+- After step 6 is accepted, the next workstream is the broad Markdown audit and
+  current React screenshots. The older SEC promotion/evidence gates remain
+  separate; this work does not authorize a production-model change.
+
+## Historical product checkpoint — 2026-09-09
 
 - Universe discovery (bounded 2.5) is user-tested and accepted; the user explicitly
   authorized committing and pushing this feature after the final launcher test.
@@ -127,6 +139,35 @@ Local verification: 554 Python tests passed, four platform-specific tests skippe
 the five-module mypy check, repository lint and lock-integrity check passed.
 The change is uncommitted; hosted CI has not run for step 5.
 
+**Step 5 release update — 2026-10-13:** The user subsequently authorized commit
+and push. Released as `a4ca37e`; all 15 hosted CI jobs passed in
+[run 38348813241](https://github.com/nlibby17/Stock-Research-Assistant/actions/runs/38348813241).
+
+**Step 6 implementation update — 2026-10-13:** The user authorized the CLI split,
+with no commit/push until separately requested. Command handlers are grouped by
+configuration, reports, storage, SEC filings/facts/financials, provider comparison,
+and workflow composition. The existing parser, daily-workflow runner, universe
+commands, calculation services, and storage boundaries are retained. The universe
+review worker now calls the workflow command module directly. See
+[CLI command ownership](CLI_ARCHITECTURE.md) for responsibilities and dependency
+direction. `cli.py` is now 59 lines, down from 1,871, with eight cohesive command
+modules ranging from 96 to 390 lines. All 31 original handler/helper/main syntax
+trees are unchanged; the parser wiring is the only rewritten function. The full
+pre/post help and argument-surface comparison also matches for all 26 commands.
+
+Verification: 75 new offline command-contract and SEC failure-path cases pass
+against the original implementation and the split. The final Windows/Python 3.14
+suite passes 629 tests with four platform-specific skips; the full suite also passed
+after each extraction slice. Repository lint, scoped mypy, dependency-lock integrity,
+and diff checks pass. An isolated wheel build contains every command module and both
+dashboard assets; all 26 handlers resolve from that wheel, and desktop wiring is
+intact. The installed console command and both Python module entry points reproduce
+baseline help. Local `config-check` remains valid. Test databases, reports, and
+packaging outputs stayed in isolated temporary directories; no live report was run.
+The user subsequently accepted the result and authorized commit/push on 2026-10-13.
+Hosted CI remains release verification after that push. The broad documentation and
+screenshot refresh remains next.
+
 | Suggested order | User item | Verified finding and proposed scope | Acceptance gate for future implementation |
 |---|---|---|---|
 | 1 | #2 Windows installer failures | `scripts/setup.ps1` invokes pip without checking its native exit code. Check Python probing, virtual-environment creation, pip installation, and setup validation at their boundaries. | Simulated failures stop with a useful error and nonzero exit; no success message or launcher creation after failure. Successful setup and rerunning setup remain supported. |
@@ -145,8 +186,7 @@ rewrite now.
 The CLI requirement supersedes earlier advice that treated extraction as conditional
 on another maintenance problem. The implementation method remains deliberate and
 behavior-preserving; the earlier campaign closure does not cancel this newly required
-work. Steps 4–5 are authorized as recorded above; implementation of workstream 6
-remains paused until requested.
+work. Steps 4–6 and their commit/push checkpoints are authorized as recorded above.
 
 Dependency order: provider tests precede concurrency; define Python/lock support
 before adding mypy to the managed development environment. Typing and CLI extraction

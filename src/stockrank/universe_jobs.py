@@ -208,8 +208,8 @@ def execute(request):
         return {"status": "complete", "proposal_path": str(path)}
     if request["kind"] != "report":
         raise ValueError("Unknown review job")
-    from stockrank.cli import command_daily_report
     from stockrank.dashboard_data import load_dashboard
+    from stockrank.workflow_commands import command_daily_report
 
     verify_active(settings, payload)
     previous = (load_dashboard(root).get("run") or {}).get("run_id")

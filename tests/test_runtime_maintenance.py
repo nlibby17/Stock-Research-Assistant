@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from stockrank import cli
+from stockrank import storage_commands
 from stockrank.runtime_maintenance import (
     CleanupEntry,
     CleanupPlan,
@@ -58,10 +58,10 @@ def command_environment(tmp_path, monkeypatch):
         def counts(self):
             return {"analysis_runs": 4}
 
-    monkeypatch.setattr(cli, "datetime", Clock)
-    monkeypatch.setattr(cli, "load_settings", lambda: settings)
-    monkeypatch.setattr(cli, "validate_settings", lambda settings: ([], []))
-    monkeypatch.setattr(cli, "Storage", FakeStorage)
+    monkeypatch.setattr(storage_commands, "datetime", Clock)
+    monkeypatch.setattr(storage_commands, "load_settings", lambda: settings)
+    monkeypatch.setattr(storage_commands, "validate_settings", lambda settings: ([], []))
+    monkeypatch.setattr(storage_commands, "Storage", FakeStorage)
     return root, calls
 
 
@@ -78,13 +78,13 @@ def test_command_preview_apply_and_cutoff_contract(command_environment, capsys):
         write_file(root / "reports/nested/old.txt"),
         write_file(root / "logs/old.txt"),
     ]
-    assert cli.command_storage_clean(Namespace(apply=False)) == 0
+    assert storage_commands.command_storage_clean(Namespace(apply=False)) == 0
     preview = capsys.readouterr().out
     assert 'Dry run database cleanup: {"old_price_bars": 2}' in preview
     assert "Expired runtime files: 3" in preview
     assert "Nothing was removed." in preview
     assert all(path.exists() for path in expired + protected + retained)
-    assert cli.command_storage_clean(Namespace(apply=True)) == 0
+    assert storage_commands.command_storage_clean(Namespace(apply=True)) == 0
     applied = capsys.readouterr().out
     assert "Applied database cleanup:" in applied
     assert (
@@ -101,7 +101,7 @@ def test_status_includes_sidecars_nested_files_and_missing_folders(command_envir
     for suffix in ("", "-wal", "-shm"):
         write_file(root / ("stockrank.sqlite3" + suffix), size=2)
     write_file(root / "reports/nested/report.md", size=4)
-    assert cli.command_storage_status(Namespace()) == 0
+    assert storage_commands.command_storage_status(Namespace()) == 0
     assert capsys.readouterr().out == (
         "database: 6.0 B\nreports: 4.0 B\nsec_cache: 0.0 B\nlogs: 0.0 B\n"
         "temporary: 0.0 B\ntotal: 10.0 B\nanalysis_runs: 4 rows\n"
@@ -209,7 +209,7 @@ def test_command_refuses_unsafe_plan_before_database_apply(
         return original(path, *args, **kwargs)
 
     monkeypatch.setattr(path_type, "resolve", redirected)
-    assert cli.command_storage_clean(Namespace(apply=True)) == 1
+    assert storage_commands.command_storage_clean(Namespace(apply=True)) == 1
     assert calls == []
     assert "Cleanup refused" in capsys.readouterr().err
 
@@ -251,8 +251,8 @@ def test_command_reports_partial_apply_failure(command_environment, monkeypatch,
     def fail_apply(plan, root):
         raise OSError("file is locked")
 
-    monkeypatch.setattr(cli, "apply_cleanup_plan", fail_apply)
-    assert cli.command_storage_clean(Namespace(apply=True)) == 1
+    monkeypatch.setattr(storage_commands, "apply_cleanup_plan", fail_apply)
+    assert storage_commands.command_storage_clean(Namespace(apply=True)) == 1
     output = capsys.readouterr()
     assert "Runtime file cleanup stopped: file is locked" in output.err
     assert "may already have completed" in output.err
