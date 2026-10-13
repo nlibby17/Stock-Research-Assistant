@@ -5,7 +5,7 @@ changing this project. Follow the roadmap sequence and acceptance gates. Preserv
 unrelated user changes and inspect `git status` before editing.
 
 For dashboard or launcher work, also read `docs/DASHBOARD_REACT.md`. React is the
-default local dashboard; Streamlit is an explicit fallback. Current delivery status
+only local dashboard; the Streamlit fallback has been removed. Current delivery status
 and the next-session starting point are at the top of `docs/ROADMAP.md`.
 
 When a user asks to run a daily report, morning analysis, or equivalent full

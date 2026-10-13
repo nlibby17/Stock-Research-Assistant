@@ -10,6 +10,56 @@ See `DASHBOARD_REACT.md` and the current handoff in `ROADMAP.md`. Dated test cou
 pending approvals and platform-check notes in older entries below describe those
 historical checkpoints, not outstanding requirements for the current release.
 
+## React-only dashboard and SEC adapter — approved 2026-10-13
+
+The user explicitly approved retiring the Streamlit fallback and refactoring
+`data/sec.py`, delegated the SEC module boundaries, and asked to leave the other
+large files alone. This is a bounded follow-up after the completed reliability
+steps, not a reopening of the canceled broad refactoring campaign. The user
+required an implementation report before separately authorizing commit/push.
+After receiving that report, the user accepted the result and authorized both
+on October 13, 2026.
+
+**Decision and implementation:**
+
+- Remove `dashboard.py` and `dashboard_vs.py`, their theme, the `--ui` selector,
+  Streamlit-only tests and dependencies. React remains the sole dashboard using
+  the existing Python server and shipped assets. Launcher, browser, shutdown and
+  farewell behavior are preserved.
+- Replace the obsolete PyArrow setup check with checks for the required bundled
+  HTML, JavaScript and CSS. Missing assets fail setup/startup with repair guidance.
+  Both dependency locks are regenerated without upgrading retained package pins.
+  The macOS 11 profile retains NumPy 1.26.4 and its existing support boundaries.
+- Split SEC transport/cache, configuration, identity/filings, Company Facts and
+  shared types into cohesive modules. Existing command/calculation imports remain
+  available through the 75-line `data/sec.py` entry point. The largest owning
+  module is 427 lines. See [SEC adapter ownership](SEC_ADAPTER.md).
+- Preserve all 22 original SEC class/function definitions exactly at the syntax
+  tree level. The complete before/after formula manifest matches, including its
+  implementation fingerprint. Cache formats, selection rules and stored history
+  therefore need no migration for this relocation.
+- Port the six old dashboard execution scenarios onto the React read model,
+  preserving legacy evidence limits, stored eligibility rules, historical cutoffs
+  and the separation of report-linked and current diagnostics. Existing React
+  tests cover rendering, distinct pair selection, missing values and disclosures.
+- Update directly affected operating/architecture documentation and remove the
+  two obsolete screenshots from README. Preserve dated historical ledger entries.
+  The full Markdown audit and replacement React screenshots remain separate.
+
+**Scope held:** `storage.py`, `storage_schema.py`, `sec_financials.py`,
+`customization.py` and `test_universe_discovery.py` are unchanged. No scoring,
+provider promotion, universe changes, live report generation or user data migration.
+
+**Verification:** Windows Python 3.14 full suite: 624 passed, four platform-specific
+skips. Frontend: 20 tests, formatting and build passed; rebuilt assets match the
+checked-in interface. Ruff, the existing five-module mypy check, dependency lock
+integrity and all 18 supported wheel-target checks passed. A separate clean
+installation contains neither Streamlit nor PyArrow; its full suite also passed
+with 624 passed and four skips. The built wheel contains the new SEC modules and
+React assets and excludes both retired renderers and the Streamlit requirement.
+Wheel-target checks do not execute foreign native code; hosted CI and current
+Mac execution remain pending release. The user has authorized commit and push.
+
 ## Campaign closeout and revised scope — approved 2026-09-05
 
 The user approved ending mandatory structural refactoring after S3.2 (`81c5dc0`)

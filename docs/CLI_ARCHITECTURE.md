@@ -14,14 +14,14 @@ All paths below are relative to `src/stockrank/`.
 |---|---|
 | `cli.py` | Connect command names to handlers, parse arguments, dispatch once, and report top-level errors. |
 | `command_parser.py` | Define command names, flags, defaults, help, and argument validation. Existing universe parser registration stays here. |
-| `configuration_commands.py` | `setup-check`, `config-check`, and `configure`, including interactive prompts and the isolated PyArrow import check. |
+| `configuration_commands.py` | `setup-check`, `config-check`, and `configure`, including interactive prompts and bundled React asset checks. |
 | `report_commands.py` | `run`, `validate-latest`, and `research-import`; present analysis results and validate the exact stored report. |
 | `storage_commands.py` | `storage-status` and `storage-clean`; present inventory and coordinate preview/apply with the existing cleanup policy. |
 | `sec_filings_commands.py` | `sec-health`, `sec-filings-sync`, and `sec-filings-status`; identity and filing acquisition/coverage. |
 | `sec_facts_commands.py` | `sec-facts-sync` and `sec-facts-status`; Company Facts refresh decisions, acquisition, and coverage. |
 | `sec_financial_commands.py` | `sec-financials-build` and `sec-financials-status`; invoke the existing local calculator and store/present its snapshots. |
 | `provider_commands.py` | `provider-shadow-run` and `provider-shadow-status`; isolated comparison and promotion-evidence reporting. |
-| `workflow_commands.py` | Assemble `daily-report`, coordinate `morning` with universe review, and select the `dashboard` renderer. |
+| `workflow_commands.py` | Assemble `daily-report`, coordinate `morning` with universe review, and launch the React `dashboard`. |
 | `daily_workflow.py` | Existing step execution/timing and dashboard process, browser, welcome, and farewell lifecycle. |
 | `universe_commands.py` | Existing universe configuration, proposals, review, approval, rejection, and parser registration. |
 
@@ -49,15 +49,17 @@ tests patch the module that actually owns or invokes the relevant dependency.
 
 ## Behavior preserved
 
-- All 26 command names, flags, defaults, help text, and exit-code behavior remain.
+- The CLI split preserved all 26 command names, flags, defaults, help text, and
+  exit-code behavior. The separately approved October 13 Streamlit retirement
+  subsequently removed the dashboard `--ui` selector.
 - `daily-report` retains the same eight steps and force propagation. Invalid
   configuration stops provider access; a failed ranking skips shadow comparison.
   Standalone `run` still validates once, and the daily workflow still performs its
   one final validation.
 - `morning` still checks discovery first. Approval/rejection, report retries,
   visible auxiliary SEC warnings, and the single-dashboard handoff are unchanged.
-- React remains the default, Streamlit remains the explicit fallback, and the
-  launcher entry points and terminal lifecycle are unchanged.
+- React is now the only dashboard; launcher entry points and the terminal
+  lifecycle are unchanged.
 - The split does not change scoring, formula identities, schema, provider policy,
   stored history, or personal configuration.
 

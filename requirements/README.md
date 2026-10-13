@@ -20,10 +20,10 @@ Supported Python minor versions are bounded in `pyproject.toml` and covered by C
 Python patch releases and OS/native-library differences still matter; the locks
 make package selection repeatable, not the entire operating system identical.
 
-The macOS 11 lock preserves PyArrow 15.0.2 from the existing compatibility constraint
-and resolves compatible transitive dependencies (including NumPy 1.26.4). It must
-not be used with Python 3.13/3.14. Wheel checks cover the macOS 11 deployment target
-for both architectures. CI also executes this dependency profile on current macOS;
+The macOS 11 lock preserves NumPy 1.26.4 through its compatibility constraint.
+Streamlit and its PyArrow dependency have been removed from both locks. The macOS
+11 profile must not be used with Python 3.13/3.14. Wheel checks cover the macOS 11
+deployment target for both architectures. CI also executes this profile on current macOS;
 that does **not** replace a native-import smoke test on an actual macOS 11 machine.
 
 ## Installation and updates

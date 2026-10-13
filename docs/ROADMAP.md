@@ -11,15 +11,20 @@ background automation, or OpenAI API integration require separate user approval.
 
 ## Current checkpoint / next-session handoff — 2026-10-13
 
-- Reliability steps 1–5 are committed and pushed. Step 5 is `a4ca37e`; all 15
-  hosted CI jobs passed. Its release details appear in the intake below.
-- The user authorized step 6, the CLI module split, with commit/push requiring
-  separate permission. Implementation and local verification are complete;
-  the user accepted the result and authorized commit/push on 2026-10-13.
-  See [CLI command ownership](CLI_ARCHITECTURE.md) for the module map.
-- After step 6 is accepted, the next workstream is the broad Markdown audit and
-  current React screenshots. The older SEC promotion/evidence gates remain
-  separate; this work does not authorize a production-model change.
+- Reliability steps 1–6 are committed and pushed. Step 6 is `515208a`; all 15
+  hosted CI jobs passed. See [CLI command ownership](CLI_ARCHITECTURE.md).
+- On October 13 the user authorized a bounded follow-up: retire Streamlit and
+  split the SEC adapter by responsibility. Other large modules and the universe
+  discovery test organization remain unchanged. After receiving the implementation
+  report, the user accepted the result and authorized commit/push on October 13.
+- This follow-up is implemented and locally verified; release is authorized.
+  Verification is recorded in
+  [the decision ledger](REFACTORING_REVIEW.md#react-only-dashboard-and-sec-adapter--approved-2026-10-13).
+  See [SEC adapter ownership](SEC_ADAPTER.md) for its module map.
+- The next workstream remains the broad Markdown audit and
+  current React screenshots. This follow-up only updates directly affected
+  instructions and removes obsolete README images. The older SEC promotion and
+  evidence gates remain separate; no production-model change is authorized.
 
 ## Historical product checkpoint — 2026-09-09
 
@@ -176,7 +181,7 @@ screenshot refresh remains next.
 | 4 | #6 Pipeline/scoring contract | `score_universe` accepts `dict[str, dict[str, Any]]`. Both the report pipeline and universe discovery build this input. Define a shared `TypedDict` for the actual boundary and its required/optional fields; introduce scoped mypy checking. | Both producers and scoring pass the check; demonstrate that missing/renamed required keys and incompatible values are caught. Keep runtime validation for external data and nullable metrics. No scoring, serialization or missing-value behavior changes; no blanket `Any`/ignore escapes or repo-wide typing campaign. |
 | 5 | #3 Concurrent fundamentals | The report pipeline refreshes cache misses sequentially; discovery also fetches fundamentals in a per-ticker loop. Batch prices already request Yahoo threading. Measure cold/warm runs before changing scheduling. | After provider tests, prototype a small bounded thread pool for network fetches. Keep SQLite writes and result merging on the owning thread; preserve freshness, fallback, ordering, cancellation and visible progress. Compare serial/concurrent results and timings on 50/100-stock fixtures; test partial failures and throttling. Enable only if measured benefit does not increase errors; start with one caller, not an async rewrite. |
 | 6 | #4 CLI command modules — REQUIRED | The user explicitly requires splitting the 1,871-line CLI for human readability, maintainability and interview presentation. This is a committed planning requirement, not conditional on discovering another defect. Keep a thin CLI entry point and organize command handlers into cohesive modules, reusing existing parser/workflow/universe boundaries. | Deliver a substantially smaller entry point with an understandable module map and clear ownership. Preserve command names, arguments, output, exit codes, desktop entry points and eight-step/single-dashboard behavior. Extract in small tested slices; avoid circular imports, a new giant catch-all module, unnecessary indirection or fragmented one-function files. Document the design so it is easy to explain in an interview. |
-| Cross-cutting | #7 Documentation and screenshots | Audit README, SETUP, daily workflow, dashboard/discovery guides, roadmap and linked images against the released application. README already labels its legacy Streamlit screenshots, but those do not illustrate the default React experience. | Build a findings list; verify every documented command/flag, installer and update path, timing, warning and approval/rejection description. Replace stale images with representative current views and refresh their captions/alt text. Check links and Windows/Mac instructions; exclude private paths, identity details and secrets from images. Capture final screenshots after affected UI work stabilizes and keep historical checkpoints clearly dated. |
+| Cross-cutting | #7 Documentation and screenshots | Audit README, SETUP, daily workflow, dashboard/discovery guides, roadmap and linked images against the released application. Legacy Streamlit screenshots have been removed from README; representative React screenshots are still needed. | Build a findings list; verify every documented command/flag, installer and update path, timing, warning and approval/rejection description. Replace stale images with representative current views and refresh their captions/alt text. Check links and Windows/Mac instructions; exclude private paths, identity details and secrets from images. Capture final screenshots after affected UI work stabilizes and keep historical checkpoints clearly dated. |
 
 Documentation order: audit stale guidance early, update affected instructions with
 each implementation slice, and capture final screenshots against the resulting
@@ -805,8 +810,8 @@ to the cloud changes its privacy, persistence, authentication, and usage assumpt
 
 Remain local by default. Consider deployment only after an explicit request and a
 separate review of secrets, authentication, database persistence, provider terms,
-private/public access, operating cost, and recovery. The Streamlit **Deploy** button
-is not part of the normal workflow.
+private/public access, operating cost, and recovery. The local dashboard does not
+provide a deployment workflow.
 
 ## Definition of the planned final state
 

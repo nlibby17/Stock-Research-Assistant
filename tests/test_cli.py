@@ -54,7 +54,8 @@ class FakeSocketConnection:
         return False
 
 
-def test_setup_check_initializes_runtime(monkeypatch, tmp_path):
+@pytest.mark.parametrize("missing_assets", [(), ("app.js",)])
+def test_setup_check_initializes_runtime(monkeypatch, tmp_path, capsys, missing_assets):
     config_dir = tmp_path / "config"
     config_dir.mkdir()
     (config_dir / "preferences.toml").write_text("", encoding="utf-8")
@@ -72,24 +73,16 @@ def test_setup_check_initializes_runtime(monkeypatch, tmp_path):
     monkeypatch.setattr(configuration_commands, "load_settings", lambda: settings)
     monkeypatch.setattr(configuration_commands, "validate_settings", lambda value: ([], []))
     monkeypatch.setattr(configuration_commands, "validate_sec_configuration", lambda value: [])
-    monkeypatch.setattr(configuration_commands, "_check_pyarrow_import", lambda: (None, "15.0.2"))
+    monkeypatch.setattr(configuration_commands, "missing_dashboard_assets", lambda: missing_assets)
 
-    assert configuration_commands.command_setup_check(Namespace()) == 0
+    assert configuration_commands.command_setup_check(Namespace()) == bool(missing_assets)
     assert settings.database_path.exists()
-
-
-def test_pyarrow_native_check_reports_a_child_process_crash(monkeypatch):
-    monkeypatch.setattr(
-        configuration_commands.subprocess,
-        "run",
-        lambda *args, **kwargs: SimpleNamespace(returncode=-11, stdout="", stderr=""),
-    )
-
-    failure, version = configuration_commands._check_pyarrow_import()
-
-    assert "terminated by signal 11" in failure
-    assert "setup or update helper" in failure
-    assert version is None
+    output = capsys.readouterr()
+    if missing_assets:
+        assert "NOT READY" in output.out
+        assert "Missing: app.js" in output.err
+    else:
+        assert "Setup check: READY" in output.out
 
 
 def test_daily_report_runs_all_steps_and_reports_degradation(monkeypatch, tmp_path, capsys):
@@ -554,7 +547,7 @@ def test_morning_does_not_launch_dashboard_after_report_failure(monkeypatch, cap
     assert "dashboard was not started" in capsys.readouterr().err
 
 
-def test_dashboard_disables_file_watching_and_shows_windows_stop_key(monkeypatch, capsys):
+def test_dashboard_launches_react_and_shows_windows_stop_key(monkeypatch, capsys):
     calls = []
     browser_calls = []
     monkeypatch.setattr(workflow_commands.sys, "platform", "win32")
@@ -570,11 +563,10 @@ def test_dashboard_disables_file_watching_and_shows_windows_stop_key(monkeypatch
         lambda url: browser_calls.append(url) or True,
     )
 
-    assert workflow_commands.command_dashboard(Namespace(ui="streamlit")) == 0
-    assert calls[0][0:4] == [workflow_commands.sys.executable, "-m", "streamlit", "run"]
-    assert "--server.fileWatcherType=none" in calls[0]
-    assert "--server.headless=true" in calls[0]
-    assert "--server.port=8765" in calls[0]
+    assert workflow_commands.command_dashboard(Namespace()) == 0
+    assert calls == [
+        [workflow_commands.sys.executable, "-m", "stockrank.dashboard_server", "--port=8765"]
+    ]
     assert browser_calls == ["http://localhost:8765"]
     output = capsys.readouterr().out
     assert "=" * 62 in output
@@ -625,8 +617,11 @@ def test_dashboard_defaults_to_prebuilt_react(monkeypatch):
     assert calls == [
         [workflow_commands.sys.executable, "-m", "stockrank.dashboard_server", "--port=8765"]
     ]
-    assert cli.build_parser().parse_args(["dashboard"]).ui == "react"
-    assert cli.build_parser().parse_args(["dashboard", "--ui", "streamlit"]).ui == "streamlit"
+    assert (
+        cli.build_parser().parse_args(["dashboard"]).handler is workflow_commands.command_dashboard
+    )
+    with pytest.raises(SystemExit):
+        cli.build_parser().parse_args(["dashboard", "--ui", "streamlit"])
 
 
 def test_dashboard_keeps_running_when_browser_open_fails(monkeypatch, capsys):

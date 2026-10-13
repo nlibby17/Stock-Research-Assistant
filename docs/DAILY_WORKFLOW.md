@@ -179,13 +179,12 @@ static version. A manual command returns to its shell; the double-click launcher
 exits its process. After Y + Enter, the macOS desktop launcher also closes its own
 single-tab Apple Terminal window. Other windows and multi-tab windows remain open.
 
-React is the default; use `stockrank dashboard --ui streamlit` for the retained
-fallback. No Node.js installation or frontend build is required for normal use.
+React is the only dashboard. No Node.js installation or frontend build is
+required for normal use.
 The React server binds only to loopback, serves prebuilt assets, and reads SQLite
 in a read-only transaction. It neither generates reports nor changes configuration.
-Source-code watching is disabled for this end-user
-workflow, so Watchdog and Xcode Command Line Tools are unnecessary. Deployment is
-not part of this workflow.
+The server does not watch source files or require Xcode Command Line Tools.
+Deployment is not part of this workflow.
 
 ## Optional storage maintenance
 

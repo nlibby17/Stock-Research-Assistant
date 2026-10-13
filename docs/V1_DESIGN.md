@@ -14,9 +14,8 @@ Daily adjusted/unadjusted prices and a small set of current fundamental summarie
 come from Yahoo Finance through the open-source `yfinance` client. The adapter is
 isolated so it can be replaced. SEC EDGAR supplies primary-source research and
 isolated structured financial snapshots/shadow comparisons; promotion into ranking
-inputs remains gated. SQLite is the only durable runtime store. React is the default
-read-only dashboard, served by a loopback-only Python adapter over stored runs;
-Streamlit remains an explicit fallback. See `DASHBOARD_REACT.md` for current UI,
+inputs remains gated. SQLite is the only durable runtime store. React is the only
+read-only dashboard, served by a loopback-only Python adapter over stored runs. See `DASHBOARD_REACT.md` for current UI,
 packaging and launcher details.
 
 ## Source assessment (checked 2026-08-26)

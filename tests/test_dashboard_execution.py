@@ -5,9 +5,8 @@ from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from streamlit.testing.v1 import AppTest
-
 from stockrank.config import load_settings
+from stockrank.dashboard_data import json_value, load_dashboard
 from stockrank.models import (
     AnalysisRun,
     ProviderComparisonRun,
@@ -19,7 +18,6 @@ from stockrank.provider_comparison import load_provider_comparison_config
 from stockrank.storage import Storage
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DASHBOARD_PATH = PROJECT_ROOT / "src" / "stockrank" / "dashboard.py"
 
 
 def _isolated_project(tmp_path: Path) -> Path:
@@ -89,11 +87,6 @@ def _save_run(
     )
 
 
-def _run_dashboard(root: Path, monkeypatch) -> AppTest:
-    monkeypatch.chdir(root)
-    return AppTest.from_file(DASHBOARD_PATH, default_timeout=10).run()
-
-
 def _save_financial_snapshot(
     storage: Storage,
     *,
@@ -123,16 +116,15 @@ def _save_comparison_run(storage: Storage, run: ProviderComparisonRun) -> None:
     storage.save_provider_comparison_run(run, ())
 
 
-def test_dashboard_executes_with_no_saved_run(tmp_path, monkeypatch):
+def test_dashboard_executes_with_no_saved_run(tmp_path):
     root = _isolated_project(tmp_path)
 
-    app = _run_dashboard(root, monkeypatch)
+    data = load_dashboard(root)
 
-    assert not app.exception
-    assert any("No run exists yet" in item.value for item in app.info)
+    assert data["run"] is None
 
 
-def test_dashboard_executes_current_completed_run(tmp_path, monkeypatch):
+def test_dashboard_executes_current_completed_run(tmp_path):
     root = _isolated_project(tmp_path)
     _save_run(
         root,
@@ -140,16 +132,14 @@ def test_dashboard_executes_current_completed_run(tmp_path, monkeypatch):
         eligible=True,
     )
 
-    app = _run_dashboard(root, monkeypatch)
+    data = load_dashboard(root)
 
-    assert not app.exception
-    assert any(item.value == "Top Candidates Within This Universe" for item in app.header)
-    assert not any("filing metadata is withheld" in item.value for item in app.caption)
+    assert [row["ticker"] for row in data["candidates"]] == ["AAPL"]
+    assert data["financial_cutoff_valid"] is True
+    assert data["filings"]["AAPL"]["limitation"] is None
 
 
-def test_dashboard_executes_legacy_run_and_withholds_unbounded_filings(
-    tmp_path, monkeypatch
-):
+def test_dashboard_executes_legacy_run_and_withholds_unbounded_filings(tmp_path):
     root = _isolated_project(tmp_path)
     _save_run(root, completed_at=None, eligible=True, full_policy=False)
     settings = load_settings(root)
@@ -163,14 +153,14 @@ def test_dashboard_executes_legacy_run_and_withholds_unbounded_filings(
         formula_version="current-only",
     )
 
-    app = _run_dashboard(root, monkeypatch)
+    data = load_dashboard(root)
 
-    assert not app.exception
-    assert any("filing metadata is withheld" in item.value for item in app.caption)
-    assert any("SEC financial snapshots are withheld" in item.value for item in app.info)
+    assert data["financial_cutoff_valid"] is False
+    assert data["financials"] == []
+    assert "withheld" in data["filings"]["AAPL"]["limitation"]
 
 
-def test_dashboard_no_candidate_message_uses_all_stored_rules(tmp_path, monkeypatch):
+def test_dashboard_no_candidate_message_uses_all_stored_rules(tmp_path):
     root = _isolated_project(tmp_path)
     _save_run(
         root,
@@ -178,21 +168,16 @@ def test_dashboard_no_candidate_message_uses_all_stored_rules(tmp_path, monkeypa
         eligible=False,
     )
 
-    app = _run_dashboard(root, monkeypatch)
+    data = load_dashboard(root)
 
-    assert not app.exception
-    message = next(
-        item.value for item in app.info if "stored candidate eligibility rules" in item.value
-    )
+    message = data["empty_candidates"]
     assert "score ≥ 55" in message
     assert "coverage ≥ 60%" in message
     assert "price ≥ $1.00" in message
     assert "20-day average dollar volume ≥ $1,000,000" in message
 
 
-def test_dashboard_separates_report_evidence_from_current_diagnostics(
-    tmp_path, monkeypatch
-):
+def test_dashboard_separates_report_evidence_from_current_diagnostics(tmp_path):
     root = _isolated_project(tmp_path)
     report_cutoff = datetime(2026, 8, 31, 12, 1, tzinfo=UTC)
     _save_run(root, completed_at=report_cutoff, eligible=True)
@@ -283,53 +268,19 @@ def test_dashboard_separates_report_evidence_from_current_diagnostics(
         )
     )
 
-    app = _run_dashboard(root, monkeypatch)
+    data = load_dashboard(root)
 
-    assert not app.exception
-    financial_table = next(
-        item.value
-        for item in app.dataframe
-        if {"Ticker", "Snapshot as of", "Formula"}.issubset(item.value.columns)
-    )
-    assert financial_table["Ticker"].tolist() == ["AAPL"]
-    assert financial_table["Formula"].tolist() == ["report-formula"]
-    captions = [item.value for item in app.caption]
-    assert any(
-        "Report-bound SEC evidence" in value
-        and "stored universe test-universe" in value
-        and "cutoff 2026-08-31T12:01:00+00:00" in value
-        for value in captions
-    )
-    assert any(
-        "Report-bound provider comparison · linked-shadow" in value
-        and "analysis run dashboard-run" in value
-        and "stored-shadow-policy" in value
-        for value in captions
-    )
-    assert any(
-        "Stored SEC formula contracts" in value and "report-formula@report-formu" in value
-        for value in captions
-    )
-    assert any(
-        "Installation-current diagnostics" in value
-        and active_universe_name in value
-        and active_policy.version in value
-        and "report-bound policy stored-shadow-policy" in value
-        and "policy differs from the report-bound comparison" in value
-        and "differs from displayed report" in value
-        for value in captions
-    )
-    assert any(
-        "Installation-current Step 2.4B progress" in value
-        and "current-shadow" in value
-        and "not linked to the displayed report" in value
-        for value in captions
-    )
+    assert [row["ticker"] for row in data["financials"]] == ["AAPL"]
+    assert data["financials"][0]["formula_version"] == "report-formula"
+    assert data["report_shadow"] == json_value(linked_shadow)
+    assert data["current_shadow"] == json_value(current_shadow)
+    assert data["run"]["universe_name"] == "test-universe"
+    assert data["active"]["universe_name"] == active_universe_name
+    assert data["shadow_policy"] == active_policy.version
+    assert data["report_shadow"]["config_version"] != data["shadow_policy"]
 
 
-def test_dashboard_does_not_replace_missing_report_shadow_evidence(
-    tmp_path, monkeypatch
-):
+def test_dashboard_does_not_replace_missing_report_shadow_evidence(tmp_path):
     root = _isolated_project(tmp_path)
     report_cutoff = datetime(2026, 8, 31, 12, 1, tzinfo=UTC)
     _save_run(root, completed_at=report_cutoff, eligible=True)
@@ -354,11 +305,7 @@ def test_dashboard_does_not_replace_missing_report_shadow_evidence(
         ),
     )
 
-    app = _run_dashboard(root, monkeypatch)
+    data = load_dashboard(root)
 
-    assert not app.exception
-    assert any(
-        "No provider comparison is linked to displayed analysis run dashboard-run"
-        in item.value
-        for item in app.info
-    )
+    assert data["report_shadow"] is None
+    assert data["current_shadow"]["comparison_run_id"] == "unrelated-shadow"

@@ -168,3 +168,23 @@ def test_server_error_does_not_expose_internal_paths(local_server, monkeypatch):
     status, _, body = request(local_server, "/api/report")
     assert status == 500
     assert b"private-secret-path" not in body
+
+
+@pytest.mark.parametrize("missing", ["index.html", "app.js", "app.css"])
+def test_missing_dashboard_assets_block_startup(tmp_path, monkeypatch, capsys, missing):
+    for name in ("index.html", "app.js", "app.css"):
+        if name != missing:
+            (tmp_path / name).write_text("asset", encoding="utf-8")
+    monkeypatch.setattr(dashboard_server, "ASSETS", tmp_path)
+    monkeypatch.setattr("sys.argv", ["dashboard_server"])
+    with pytest.raises(SystemExit) as error:
+        dashboard_server.main()
+    assert error.value.code == 2
+    assert f"Missing: {missing}" in capsys.readouterr().err
+
+
+def test_server_reports_missing_asset_without_fallback(local_server, monkeypatch, tmp_path):
+    monkeypatch.setattr(dashboard_server, "ASSETS", tmp_path)
+    status, _, body = request(local_server, "/app.js")
+    assert status == 503
+    assert body == dashboard_server.ASSET_REPAIR.encode()

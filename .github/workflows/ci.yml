@@ -83,7 +83,7 @@ jobs:
           .venv/bin/python -m pip install --require-hashes --only-binary=:all: -r requirements/macos-11-py312.lock
       - run: .venv/bin/python -m pip install --no-deps --no-build-isolation -e .
       - run: .venv/bin/python -m pip check
-      - run: .venv/bin/python -c "import pyarrow, numpy, pandas, curl_cffi, yfinance, streamlit"
+      - run: .venv/bin/python -c "import numpy, pandas, curl_cffi, yfinance, stockrank.dashboard_server, stockrank.data.sec"
       - run: .venv/bin/python -m pytest -q
       - run: .venv/bin/python -m mypy
 

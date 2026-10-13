@@ -63,8 +63,8 @@ compatible wheels, stale locks, and dependency conflicts stop installation with 
 error. See [dependency support and lock maintenance](requirements/README.md).
 
 The macOS helper automatically uses Python 3.12 and compatible prebuilt packages on
-macOS 11. It avoids the PyArrow/libcst compilation and segmentation-fault problems
-seen with incompatible versions on that operating system.
+macOS 11. Its separate dependency profile retains compatible NumPy wheels for
+Intel and Apple Silicon. Streamlit and PyArrow are no longer required.
 
 ## 4. Add the SEC contact identity
 
@@ -183,11 +183,13 @@ Unsupported terminals use a static farewell; redirected output never waits.
 ./.venv/bin/stockrank dashboard
 ```
 
-The default React dashboard uses the latest stored report. Reload the browser
+The React dashboard uses the latest stored report. Reload the browser
 after generating a new report or importing research. Normal installation and
 updates include the built interface: no Node.js or frontend build is needed.
-Append `--ui streamlit` to the platform's dashboard command for the retained
-Streamlit fallback. See [dashboard details](docs/DASHBOARD_REACT.md).
+React is the only dashboard; the former `--ui` option has been removed.
+`setup-check` verifies the required bundled interface files. If they are missing,
+restore a complete project download and rerun setup; frontend contributors can
+rebuild them as described in [dashboard details](docs/DASHBOARD_REACT.md).
 
 ## Create or repair the desktop launcher
 

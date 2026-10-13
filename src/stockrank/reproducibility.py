@@ -118,7 +118,7 @@ def build_run_manifest(settings: Settings, *, provider_name: str, schema_version
             "platform": platform.platform(),
             "packages": {
                 name: _package_version(name)
-                for name in ("requests", "streamlit", "yfinance")
+                for name in ("requests", "yfinance")
             },
         },
     }

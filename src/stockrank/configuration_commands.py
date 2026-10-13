@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import subprocess
 import sys
 import tempfile
 from datetime import UTC, datetime, timedelta
@@ -26,46 +25,12 @@ from stockrank.customization import (
     save_local_customization,
     universe_identifier,
 )
+from stockrank.dashboard_server import ASSET_REPAIR, missing_dashboard_assets
 from stockrank.data import YFinanceProvider
 from stockrank.data.sec import validate_sec_configuration
 from stockrank.models import Security
 from stockrank.sec_filings_commands import command_sec_health
 from stockrank.storage import Storage
-
-
-def _check_pyarrow_import() -> tuple[str | None, str | None]:
-    """Check the native extension in a child process so a crash cannot kill this command."""
-    try:
-        result = subprocess.run(
-            [
-                sys.executable,
-                "-c",
-                "import pyarrow; print(pyarrow.__version__)",
-            ],
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-        )
-    except subprocess.TimeoutExpired:
-        return "PyArrow native import check timed out after 30 seconds", None
-    except OSError as exc:
-        return f"PyArrow native import check could not start: {exc}", None
-    if result.returncode != 0:
-        if result.returncode < 0:
-            detail = f"terminated by signal {-result.returncode}"
-        else:
-            stderr_lines = result.stderr.strip().splitlines()
-            detail = stderr_lines[-1] if stderr_lines else f"exit code {result.returncode}"
-        return (
-            (
-                "PyArrow native import check failed "
-                f"({detail}). Rerun the platform setup or update helper before using the app"
-            ),
-            None,
-        )
-    version = result.stdout.strip().splitlines()
-    return None, version[-1] if version else "version unavailable"
 
 
 def command_setup_check(_: argparse.Namespace) -> int:
@@ -87,9 +52,8 @@ def command_setup_check(_: argparse.Namespace) -> int:
     config_errors, config_warnings = validate_settings(settings)
     failures.extend(config_errors)
 
-    pyarrow_failure, pyarrow_version = _check_pyarrow_import()
-    if pyarrow_failure:
-        failures.append(pyarrow_failure)
+    if missing := missing_dashboard_assets():
+        failures.append(f"{ASSET_REPAIR} Missing: {', '.join(missing)}")
 
     failures.extend(validate_sec_configuration(settings))
 
@@ -104,7 +68,7 @@ def command_setup_check(_: argparse.Namespace) -> int:
 
     print(
         f"Python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} | "
-        f"PyArrow: {pyarrow_version or 'unavailable'} | project: {settings.root}"
+        f"project: {settings.root}"
     )
     print(
         f"Universe: {len(settings.universe)} securities | model: {settings.model_version} | "

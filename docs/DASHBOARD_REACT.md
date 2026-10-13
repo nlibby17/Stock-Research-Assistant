@@ -1,6 +1,11 @@
 # Local React dashboard
 
-Approved presentation migration, 2026-09-06. No scoring, providers, schema,
+Current maintenance update, 2026-10-13: React is the only dashboard. The old
+Streamlit renderer, comparison module, theme, dependency and `--ui` selector have
+been removed. `setup-check` and server startup check the shipped HTML, JavaScript
+and CSS. The accepted React interface and report semantics are unchanged.
+
+Historical presentation migration, approved 2026-09-06. No scoring, providers, schema,
 production universe, SEC promotion or weekly-discovery behavior changes.
 
 Latest presentation follow-up (user approved for commit/push): VS score, Coverage, and key-metric
@@ -34,10 +39,9 @@ lower rows move right. The center line, message, colors, sizing, and exit contro
 retain their existing behavior. Verification: 14 frontend tests and 12 farewell
 tests pass; production assets rebuilt; desktop and narrow Home layouts inspected.
 
-## Run and fallback
+## Run
 
 `stockrank dashboard` and the existing morning/double-click flow use React.
-`stockrank dashboard --ui streamlit` retains the existing dashboard implementation.
 Only run `morning` when new calculations/provider work are wanted; `dashboard`
 reads the latest stored report. Reload after a new report or research import.
 The CSV endpoint refuses to export a different latest run than the displayed one.
@@ -66,8 +70,7 @@ do not expose this server through a proxy or tunnel.
 Missing evidence remains unavailable, not zero or invented. Formula identities,
 stored eligibility rules, legacy limitations, source dates and report/current
 distinctions are retained. Chart data is available below each chart. Charts use
-SVG rather than the old Altair-specific export/spec menu; the Streamlit fallback
-still has that menu.
+SVG; the retired Altair-specific export/spec menu is not part of this interface.
 
 Navigation changes the in-memory view, not the URL or browser document; only Home
 navigation returns to Home during the session. Reload starts at Home. Only the
@@ -163,7 +166,8 @@ Preview without generating a report: `python -m stockrank.farewell`.
 - Browser checks use existing stored reports, not new daily runs. User visual
   acceptance is complete. On 2026-09-06 the user also reported flawless operation
   on their Mac after updating. This is user-reported manual verification, not an
-  agent-run test or a claim about every macOS version. Streamlit remains optional.
+  agent-run test or a claim about every macOS version. Streamlit was still optional
+  at that historical checkpoint; it was retired in the October 13 maintenance work.
 - Hosted [CI run 34012607584](https://github.com/nlibby17/Stock-Research-Assistant/actions/runs/34012607584)
   completed successfully for `9acd197`; the workflow covers Python on Windows,
   macOS and Ubuntu, plus frontend tests, formatting and bundle consistency.

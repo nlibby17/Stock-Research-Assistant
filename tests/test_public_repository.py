@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,19 +18,12 @@ def test_public_repository_license_and_links_are_current():
     assert "[MIT License](LICENSE)" in readme
 
 
-def test_readme_uses_two_verified_dashboard_images():
+def test_readme_local_links_and_images_exist():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    image_paths = (
-        "docs/images/dashboard-overview.jpg",
-        "docs/images/dashboard-research-summary.jpg",
-    )
-
-    assert readme.count("docs/images/") == len(image_paths)
-    for relative_path in image_paths:
-        assert relative_path in readme
-        image_bytes = (ROOT / relative_path).read_bytes()
-        assert image_bytes.startswith(b"\xff\xd8\xff")
-        assert len(image_bytes) >= 40_000
+    for target in re.findall(r"\]\(([^)]+)\)", readme):
+        if target.startswith(("https://", "http://", "#")):
+            continue
+        assert (ROOT / target.split("#", 1)[0]).is_file(), target
 
 
 def test_ci_runs_lint_and_tests_on_all_supported_desktop_families():

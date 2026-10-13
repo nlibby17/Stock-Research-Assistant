@@ -14,6 +14,17 @@ from stockrank.dashboard_data import load_dashboard
 from stockrank.presentation import rankings_csv
 
 ASSETS = Path(__file__).with_name("web_assets")
+ASSET_REPAIR = (
+    "Dashboard assets are missing. Reinstall from a complete project download "
+    "or rebuild the frontend assets."
+)
+
+
+def missing_dashboard_assets() -> tuple[str, ...]:
+    """Check the shipped files needed to display the dashboard without Node.js."""
+    return tuple(
+        name for name in ("index.html", "app.js", "app.css") if not (ASSETS / name).is_file()
+    )
 
 
 def make_handler(root: Path):
@@ -91,7 +102,7 @@ def make_handler(root: Path):
             if not asset.is_file():
                 return self.send(
                     503,
-                    b"Dashboard assets are missing. Rebuild the frontend or use --ui streamlit.",
+                    ASSET_REPAIR.encode(),
                 )
             return self.send(
                 200, asset.read_bytes(), mimetypes.guess_type(name)[0] or "application/octet-stream"
@@ -105,8 +116,8 @@ def main():
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--root", type=Path, default=Path.cwd())
     args = parser.parse_args()
-    if not (ASSETS / "index.html").exists():
-        parser.error("React assets missing; run the frontend build or use --ui streamlit")
+    if missing := missing_dashboard_assets():
+        parser.error(f"{ASSET_REPAIR} Missing: {', '.join(missing)}")
     server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(args.root))
     print(f"React dashboard ready at http://localhost:{args.port}", flush=True)
     try:

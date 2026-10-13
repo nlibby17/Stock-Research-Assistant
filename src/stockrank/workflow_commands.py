@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
 
 from stockrank.config import load_settings
 from stockrank.configuration_commands import command_config_check
@@ -54,13 +53,10 @@ def command_daily_report(args: argparse.Namespace) -> int:
     )
 
 
-def command_dashboard(args: argparse.Namespace) -> int:
-    dashboard_path = Path(__file__).with_name("dashboard.py")
+def command_dashboard(_: argparse.Namespace) -> int:
     return launch_dashboard(
-        dashboard_path,
         platform_name=sys.platform,
         executable=sys.executable,
-        ui=getattr(args, "ui", "react"),
     )
 
 

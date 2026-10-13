@@ -36,8 +36,8 @@ def test_macos_setup_script_uses_local_environment_and_preserves_existing_env():
     assert "macos_major < 11" in script
     assert 'macos_major" == "11"' in script
     assert "install_dependencies.py" in script
-    assert "pyarrow==15.0.2" in constraints
-    assert "17.0.0 has a confirmed native-import crash" in constraints
+    assert "numpy==1.26.4" in constraints
+    assert "macOS 11 Python 3.12" in constraints
     assert "dependency_constraints[@]" not in script
     assert 'mv ".venv" "$backup_path"' in script
     assert 'mkdir -p ".venv-backups"' in script

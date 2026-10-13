@@ -59,7 +59,7 @@ COMMANDS = [
         {"ticker": ["A,B"]},
     ),
     ("provider-shadow-status", [], "command_provider_shadow_status", {}),
-    ("dashboard", [], "command_dashboard", {"ui": "react"}),
+    ("dashboard", [], "command_dashboard", {}),
     (
         "universe-review",
         ["--file", "proposal.json", "--no-open"],

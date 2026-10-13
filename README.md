@@ -7,11 +7,6 @@ A local, research-only application that reviews a customizable universe of U.S.
 stocks, ranks them with an interpretable scoring model, and presents the results in
 a browser dashboard. It does not connect to a broker or place trades.
 
-![Dashboard overview showing run status, ranking configuration, and market overview](docs/images/dashboard-overview.jpg)
-
-*These screenshots show the retained Streamlit fallback, not the current React
-layout. See [Dashboard](#dashboard) for the current interface.*
-
 ## What it does
 
 - Ranks an explicit stock universe using growth, valuation, quality, momentum, and
@@ -106,8 +101,8 @@ The React dashboard has five in-place views: **Home**, **Top Candidates**, **Sto
 Comparison**, **Research**, and **Advanced**. Use the Home cards or expanding left
 navigation. Research shows one numbered company at a time. Charts animate on
 entering view, with reduced-motion support. The normal launcher and
-`stockrank dashboard` use React; `stockrank dashboard --ui streamlit` opens the
-unchanged fallback. End users do not need Node.js: built assets ship with Python.
+`stockrank dashboard` use React exclusively. End users do not need Node.js: built
+assets ship with Python.
 
 After stopping the server, an original horizon animation displays **thank you
 goodbye**, fits the terminal, and continues until **Y + Enter** at **Close terminal?
@@ -116,11 +111,6 @@ terminals receive a static version; redirected output never blocks. Y exits the
 launcher process. On macOS, the desktop launcher also closes its own single-tab
 Apple Terminal window after Y + Enter; manually started commands return to their shell.
 See [frontend development and verification](docs/DASHBOARD_REACT.md).
-
-![Expanded Research Summary for one candidate showing score, coverage, factors, and research tabs](docs/images/dashboard-research-summary.jpg)
-
-*Example from a stored local report. Rankings are research outputs, not investment
-recommendations.*
 
 ## Personalization
 
@@ -150,7 +140,7 @@ list, then opens one dashboard tab; a failed build offers a retry.
 3. Tested Python code calculates metrics, coverage, and relative scores.
 4. SQLite stores compact caches and immutable run history locally.
 5. A loopback-only Python server reads a consistent SQLite snapshot into the React
-   dashboard. Streamlit remains available as a fallback.
+   dashboard.
 
 Missing or stale values remain visible instead of being fabricated. SEC-derived
 financial calculations are currently compared with the production provider in an

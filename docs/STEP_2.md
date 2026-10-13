@@ -123,9 +123,8 @@ The build reads only locally stored Company Facts and appends immutable calculat
 snapshots. A date-only cutoff means the end of that date in the configured local
 timezone. Each metric records its period, exact decimal value, quality state,
 formula, missing/invalid reason, and source-fact lineage. The dashboard exposes
-coverage and selected values in the Advanced view's disclosure (Data Quality in
-the Streamlit fallback), clearly labelled as non-ranking
-inputs. Detailed rules and the live acceptance result are documented in
+coverage and selected values in the Advanced view's disclosure, clearly labelled
+as non-ranking inputs. Detailed rules and the live acceptance result are documented in
 [`STEP_2_4A.md`](STEP_2_4A.md).
 
 ## Step 2.4B operational commands

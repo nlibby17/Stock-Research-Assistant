@@ -202,19 +202,15 @@ def wait_for_dashboard(
 
 
 def launch_dashboard(
-    dashboard_path: Path,
     *,
     platform_name: str = sys.platform,
     executable: str = sys.executable,
     server_port: int = 8765,
-    ui: str = "streamlit",
     process_start: Callable[[list[str]], DashboardProcess] | None = None,
     browser_open: Callable[[str], bool] | None = None,
     server_wait: Callable[[DashboardProcess, int], bool] | None = None,
 ) -> int:
-    """Launch the selected local dashboard with shutdown guidance."""
-    if ui not in {"react", "streamlit"}:
-        raise ValueError("Dashboard UI must be react or streamlit")
+    """Launch the React dashboard with shutdown guidance."""
     process_start = process_start or subprocess.Popen
     browser_open = browser_open or webbrowser.open
     server_wait = server_wait or wait_for_dashboard
@@ -228,18 +224,7 @@ def launch_dashboard(
     print(f"  If the browser does not open: {dashboard_url}")
     print(f"  To stop it: press {stop_shortcut} in this terminal")
     print(border)
-    command = [
-        executable,
-        "-m",
-        "streamlit",
-        "run",
-        "--server.fileWatcherType=none",
-        "--server.headless=true",
-        f"--server.port={server_port}",
-        str(dashboard_path),
-    ]
-    if ui == "react":
-        command = [executable, "-m", "stockrank.dashboard_server", f"--port={server_port}"]
+    command = [executable, "-m", "stockrank.dashboard_server", f"--port={server_port}"]
     process = process_start(command)
     try:
         if server_wait(process, server_port):
