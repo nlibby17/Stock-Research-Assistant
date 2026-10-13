@@ -4,11 +4,16 @@ This document is the authoritative record for the pre-Step-3 code-structure revi
 It is intentionally separate from the product roadmap: refactoring must preserve
 application behavior and does not advance or redefine a product-roadmap step.
 
-Current presentation checkpoint: `9acd197` is committed and pushed; the user has
-accepted the React UI and reported successful Mac operation. Hosted CI passed.
-See `DASHBOARD_REACT.md` and the current handoff in `ROADMAP.md`. Dated test counts,
-pending approvals and platform-check notes in older entries below describe those
-historical checkpoints, not outstanding requirements for the current release.
+Current code checkpoint: `d458d56` is committed and pushed; all 15 hosted CI
+jobs passed. The user accepted the current application as the stopping point on
+October 13, 2026. The documentation/screenshot refresh is complete; after reviewing
+its completion report, the user authorized commit and push on October 13.
+No further refactoring is queued.
+See [the current roadmap](ROADMAP.md) and [React guide](DASHBOARD_REACT.md).
+
+Dated test counts, pending approvals and platform-check notes below describe
+historical checkpoints. The current roadmap supersedes their remaining sequence;
+old "next task" statements are not outstanding requirements for this closeout.
 
 ## React-only dashboard and SEC adapter — approved 2026-10-13
 
@@ -57,8 +62,11 @@ integrity and all 18 supported wheel-target checks passed. A separate clean
 installation contains neither Streamlit nor PyArrow; its full suite also passed
 with 624 passed and four skips. The built wheel contains the new SEC modules and
 React assets and excludes both retired renderers and the Streamlit requirement.
-Wheel-target checks do not execute foreign native code; hosted CI and current
-Mac execution remain pending release. The user has authorized commit and push.
+Wheel-target checks do not execute foreign native code. Release update: this
+work was committed and pushed as `d458d56`; all 15
+[hosted CI jobs](https://github.com/nlibby17/Stock-Research-Assistant/actions/runs/38354450737)
+passed, including current macOS and the macOS 11 dependency profile. This is not a
+new manual launcher test on physical macOS 11.
 
 ## Campaign closeout and revised scope — approved 2026-09-05
 

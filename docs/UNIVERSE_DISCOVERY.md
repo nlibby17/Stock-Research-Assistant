@@ -1,6 +1,7 @@
 # Universe discovery and local testing
 
-This feature has passed user testing and is approved for release. It creates reviewable proposals; it never automatically changes membership.
+This feature is delivered and user-accepted. It creates reviewable proposals;
+it never automatically changes membership.
 No broker, background task, paid provider, or AI service is involved.
 
 ## Try it now
@@ -246,6 +247,12 @@ listing/filing restrictions, unchanged preview/rejection state, exact prospectiv
 activation, preserved history/configuration, and rollback after a failed write.
 Existing metric/freshness/scoring tests remain part of the full suite.
 
+### Historical September 9 acceptance evidence
+
+The following counts and temporary acceptance states record that development
+sequence. Final feature acceptance and release are complete; current code/CI status
+is recorded in [the roadmap](ROADMAP.md). They are not new live measurements.
+
 Earlier verification on 2026-09-09: 394 Python tests passed and four platform-specific
 tests skipped; the discovery suite contains 35 passing tests. Ruff and Git diff
 checks passed. The final live preview assessed 121 candidates, with 86 eligible;
@@ -284,13 +291,14 @@ working dashboard. Terminal output relay and reuse of the existing welcome/farew
 functions are regression-tested. The SEC source-data issue itself remains flagged;
 no dates, facts, or scores are invented or substituted.
 
-For user acceptance, open a fresh preview, try keeping a proposed removal, add a
+### Reviewing a new proposal
+
+Open a fresh preview when you want to review membership. Try keeping a proposed removal, add a
 candidate, check the confirmed stock total and removals, and confirm only the exact
 list you want active. Compare sector balance and proposed
 turnover, inspect removal reasons and warnings, and try another size or search
-limit with an immediate preview. Accepting the feature and approving a membership
-proposal are separate decisions. No commit or push should happen until the user
-has finished this review and explicitly authorized the release.
+limit with an immediate preview. Acceptance of the feature does not approve any
+particular membership proposal; each activation still requires an explicit decision.
 
 Source contracts: [Yahoo/yfinance screener API](https://ranaroussi.github.io/yfinance/reference/api/yfinance.screen.html),
 [Nasdaq symbol directory fields](https://www.nasdaqtrader.com/trader.aspx?id=symboldirdefs),

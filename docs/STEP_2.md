@@ -27,29 +27,35 @@ inputs unchanged is the current decision.
    - accession joins to Step 2.2 filing-availability timestamps;
    - deterministic duplicate rejection, restatement selection, and missing values;
    - five-year normalized storage, provider health, CLI and dashboard coverage.
-4. **2.4 SEC metric derivation and controlled provider promotion — in progress**
+4. **2.4 SEC metric derivation — implemented; promotion deferred**
    - **2.4A — complete:** point-in-time annual, quarterly, YTD, and TTM financial
      snapshots with explicit local formulas and metric lineage;
-   - **2.4B — in progress (per-runtime evidence gate):** SEC/Yahoo shadow comparison
-     across at least three separate underlying market-data dates, with no production-ranking
-     changes;
-   - **2.4C:** reviewed precedence/fallback rules, before/after ranking comparison,
+   - **2.4B — comparison implemented; further review deferred:** isolated SEC/Yahoo
+     shadow comparison, with no production-ranking changes. Any future promotion
+     review requires at least three qualifying underlying market-data dates;
+   - **2.4C — deferred:** reviewed precedence/fallback rules, before/after ranking comparison,
      and explicit user approval before promotion to a new model version.
-5. **2.5 Versioned universe proposals**
-   - next proposed product feature under the reduced active plan; discovery runs
+5. **2.5 Versioned universe proposals — delivered and accepted**
+   - [discovery](UNIVERSE_DISCOVERY.md) runs
      weekly when due during user-started `morning`, not a background scheduler;
    - listing/CIK joins, eligibility checks, corporate-action handling, and dated
      proposed universe versions;
    - proposals are never activated automatically and never rewrite prior runs.
 
-Each milestone ends with deterministic tests, a live validation where applicable,
-documentation, and a separately reviewable commit.
+The user accepted the current program as the stopping point on October 13, 2026.
+Further feature work is deferred. If resumed, each milestone ends with relevant
+tests, live validation where applicable, documentation, and a separately reviewable commit.
 
 The authoritative acceptance gates, reasoning recommendations, and Steps 3–5 are
 defined in [`ROADMAP.md`](ROADMAP.md). Step 2.4 must follow 2.4A → 2.4B → 2.4C;
 raw Company Facts must never be substituted directly into production rankings.
 
 ## Step 2.1 operational command
+
+Use the project's virtual-environment executable for the `stockrank` shorthand
+below; see [the daily workflow](DAILY_WORKFLOW.md#deterministic-phase). Commands
+that sync or build data change local runtime state; status commands inspect it.
+See [SEC adapter ownership](SEC_ADAPTER.md) for the implementation map.
 
 ```powershell
 stockrank sec-health

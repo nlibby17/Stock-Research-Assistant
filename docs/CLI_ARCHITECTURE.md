@@ -3,8 +3,8 @@
 Step 6 of the reliability plan separates command orchestration by responsibility.
 The public interface remains `stockrank <command>`; the Python and desktop entry
 points still call `stockrank.cli.main`.
-The entry point is 59 lines (previously 1,871); the eight extracted modules range
-from 96 to 390 lines, keeping related commands and their helpers together.
+The extraction reduced the entry point from 1,871 lines to 59; eight command
+modules keep related commands and their helpers together.
 
 ## Module map
 
@@ -79,5 +79,5 @@ snapshots, evidence qualification, launchers, and universe review/report handoff
 
 The extraction also compares the pre/post command surface and handler syntax trees
 to detect unintended edits. Full-suite results and release status are recorded in
-[the roadmap](ROADMAP.md). The broad documentation and React screenshot refresh
-remains a separate follow-up after this implementation is accepted.
+[the roadmap](ROADMAP.md). The CLI refactor and subsequent React-only cleanup are
+released. Further structural work is deferred under the current accepted scope.

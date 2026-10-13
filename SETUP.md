@@ -130,6 +130,13 @@ folder:
 ./.venv/bin/stockrank morning
 ```
 
+At the start of `morning`, weekly universe discovery may open a proposal review.
+Review the suggested stocks and confirm approval or rejection; either decision
+then builds one report for the selected or retained list. Membership never changes
+automatically. Keep the terminal open through review and reporting. See
+[universe discovery](docs/UNIVERSE_DISCOVERY.md) for protected stocks, nominations,
+removals, retries and immediate previews.
+
 ### Option B: full report with agent-assisted qualitative research
 
 Open Codex or Claude Code, create a coding session with this project folder, and ask:
@@ -190,6 +197,10 @@ React is the only dashboard; the former `--ui` option has been removed.
 `setup-check` verifies the required bundled interface files. If they are missing,
 restore a complete project download and rerun setup; frontend contributors can
 rebuild them as described in [dashboard details](docs/DASHBOARD_REACT.md).
+
+See the [current screenshots and navigation guide](docs/DASHBOARD_REACT.md#current-screenshots)
+for Home, Top Candidates, Stock Comparison, Research and Advanced. The saved report's
+dates and coverage describe its evidence; opening it does not refresh market data.
 
 ## Create or repair the desktop launcher
 
@@ -294,6 +305,10 @@ console so Ctrl+C does not trigger an extra batch-file termination question.
 - **The launcher says the local environment is missing:** rerun the guided setup.
 - **The SEC identity check fails:** reopen `.env`, confirm that the placeholder was
   replaced, save it, and rerun `setup-check`.
+- **The dashboard opens with a Validation Alert:** expand it to inspect the failed
+  checks. `morning` can present validated rankings with explicit warnings about
+  auxiliary SEC facts, financial snapshots or shadow comparison. Core report
+  failures block that handoff; warnings do not mean the missing evidence was filled.
 - **macOS blocks the launcher:** Control-click it, choose **Open**, and confirm once.
 
 For the deterministic report stages and optional AI/human qualitative research

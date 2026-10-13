@@ -1,8 +1,8 @@
-# Forward Roadmap — Steps 2.4 through 5
+# Project status and roadmap
 
-This is the authoritative implementation sequence after Step 2.3. It refines the
-high-level roadmap in `V1_DESIGN.md`. If the documents differ, follow this file
-unless the user explicitly approves a later revision.
+This is the authoritative record of accepted scope, completed work and deferred
+ideas. The current checkpoint below supersedes the dated plans that follow it and
+the original broad sequence in `V1_DESIGN.md`.
 
 The permanent priorities remain correctness, transparency, data quality,
 reliability, maintainability, useful analysis, and then convenience. No step may
@@ -11,20 +11,65 @@ background automation, or OpenAI API integration require separate user approval.
 
 ## Current checkpoint / next-session handoff — 2026-10-13
 
-- Reliability steps 1–6 are committed and pushed. Step 6 is `515208a`; all 15
-  hosted CI jobs passed. See [CLI command ownership](CLI_ARCHITECTURE.md).
-- On October 13 the user authorized a bounded follow-up: retire Streamlit and
-  split the SEC adapter by responsibility. Other large modules and the universe
-  discovery test organization remain unchanged. After receiving the implementation
-  report, the user accepted the result and authorized commit/push on October 13.
-- This follow-up is implemented and locally verified; release is authorized.
-  Verification is recorded in
+**The user has accepted the current application as the project's stopping point.**
+The final documentation and screenshot refresh is complete and user-approved for
+release. There is no additional feature or refactoring step queued after this closeout.
+The user accepts that later improvements would require another documentation update.
+
+### Completed application work
+
+- Reliability and maintainability steps 1–6 are committed and pushed: Windows
+  installer failure handling, Yahoo adapter tests, reproducible dependency locks,
+  bounded fundamentals fetching, the typed scoring input contract, and CLI separation.
+  See [fundamentals fetching](FUNDAMENTAL_FETCHING.md),
+  [scoring inputs](SCORING_INPUT_CONTRACT.md) and [CLI ownership](CLI_ARCHITECTURE.md).
+- The React dashboard, two-stock comparison, research views, desktop launcher and
+  weekly universe proposal/review workflow are delivered and accepted.
+- The October 13 follow-up is committed and pushed as `d458d56`: React is the only
+  dashboard, Streamlit and its fallback are removed, and the SEC adapter is split
+  by responsibility. Other large modules and discovery-test organization remain as
+  agreed. See [SEC ownership](SEC_ADAPTER.md) and
   [the decision ledger](REFACTORING_REVIEW.md#react-only-dashboard-and-sec-adapter--approved-2026-10-13).
-  See [SEC adapter ownership](SEC_ADAPTER.md) for its module map.
-- The next workstream remains the broad Markdown audit and
-  current React screenshots. This follow-up only updates directly affected
-  instructions and removes obsolete README images. The older SEC promotion and
-  evidence gates remain separate; no production-model change is authorized.
+- That release passed 624 Windows Python tests with four platform-specific skips,
+  20 frontend tests, clean-install checks, and all 15
+  [hosted CI jobs](https://github.com/nlibby17/Stock-Research-Assistant/actions/runs/38354450737).
+  CI includes Windows, Linux and current macOS; its macOS 11 dependency profile
+  check is not a new manual test on physical macOS 11.
+
+### Documentation closeout
+
+The current refresh reviewed all 19 repository Markdown files, updated 14 operating,
+architecture and planning documents, and replaced the old Streamlit pictures with actual React
+screenshots. The [screenshot gallery](DASHBOARD_REACT.md#current-screenshots) records
+both capture date and saved-report date. It does not imply new market research.
+
+Verification: all 74 local links/anchors and 75 command examples checked against
+the current files and CLI parser; all four public-repository documentation tests
+passed. All five screenshots were visually inspected. Application code, stored
+reports and personal configuration were not changed by this refresh.
+
+The user reviewed the completion report and explicitly authorized commit and push
+on October 13, 2026. Leave the program at this accepted scope until they request
+more work. In a new session, inspect Git status and history to confirm the checkout's
+release state rather than inferring it from files present in the working tree.
+
+### Deferred ideas, only if the user resumes development
+
+- Step 2.4B discrepancy review and any Step 2.4C SEC provider promotion. Existing
+  SEC snapshots/shadow comparisons continue to operate; Yahoo remains the production
+  ranking source. Promotion still requires qualifying evidence, a reviewed policy,
+  a new model version and explicit approval.
+- Focused historical integrity/analysis work (3.1) and an older-run picker or richer
+  historical views (3.2). Existing compatible-previous-run comparisons remain available.
+- Additional backup/recovery work (5.1) and other operational improvements where
+  a concrete need is demonstrated.
+- Further large-module refactoring, broader historical attribution/outcome tracking,
+  backtesting, alternative providers, scheduling or deployment. These are optional
+  future scope, not unfinished requirements for the accepted application.
+
+The dated sections below preserve decisions and evidence from earlier sessions.
+Their references to "next", "pending", or "required" describe those checkpoints;
+they do not reopen deferred work or supersede this October 13 decision.
 
 ## Historical product checkpoint — 2026-09-09
 
@@ -68,7 +113,7 @@ background automation, or OpenAI API integration require separate user approval.
   The Markdown cleanup following this checkpoint is separate from `9acd197`;
   verify whether it is committed rather than assuming a clean working tree.
 
-## Active delivery plan — approved 2026-09-05
+## Historical delivery plan — approved 2026-09-05
 
 ### Reliability and maintainability intake — 2026-09-12
 

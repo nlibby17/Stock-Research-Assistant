@@ -89,8 +89,10 @@ not use Extra High when High is sufficient.
 
 ## Forward-roadmap guardrails
 
-- Treat `docs/ROADMAP.md` as authoritative for Steps 2.4–5. Do not skip a promotion
-  gate or silently combine separately reviewable substeps.
+- Treat the current checkpoint in `docs/ROADMAP.md` as authoritative. The user
+  accepted the current application as the stopping point on October 13, 2026;
+  further feature work requires a new request. Historical plans are not queued work.
+  If SEC promotion resumes, do not skip its gate or combine separately reviewable substeps.
 - After an independently reviewable roadmap substep is complete, pause for the
   user's green light before beginning the next one unless the user has explicitly
   authorized multiple substeps together.
@@ -99,9 +101,10 @@ not use Extra High when High is sufficient.
   explicit user approval.
 - Store metric-level source, period, availability, calculation-version, fallback,
   and quality lineage before beginning historical attribution.
-- Planned universe discovery runs weekly when due during a user-started `morning`,
-  recording the last successful discovery; it is not implemented yet and needs no
-  separate background scheduler. Universe maintenance creates dated proposals only.
+- Implemented universe discovery runs weekly when due during a user-started `morning`,
+  recording the last successful discovery without a background scheduler.
+  `daily-report` alone does not run discovery; use the separate discovery workflow
+  when the user requests universe review. Universe maintenance creates dated proposals only.
   Additions, removals, and replacements require approval; never activate a proposed
   universe automatically or rewrite membership in historical runs.
 - Label current-universe historical replay as survivorship-biased. Do not call it a

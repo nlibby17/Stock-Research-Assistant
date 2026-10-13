@@ -20,6 +20,10 @@ The agent must not call the full report complete until `validate-latest` confirm
 
 ## Deterministic phase
 
+Commands below use `stockrank` as shorthand. From the project folder, use
+`.\.venv\Scripts\stockrank.exe` on Windows or `./.venv/bin/stockrank` on macOS/Linux,
+unless that virtual environment is already activated.
+
 Validate the active profile and universe after any personalization change:
 
 ```text
@@ -37,8 +41,12 @@ stockrank daily-report
 ```
 
 For a person who wants the base report and dashboard in one step, use
-`stockrank morning`. It runs the same deterministic report workflow and launches
-the dashboard only after that workflow succeeds. Keep using `daily-report` by itself
+`stockrank morning`. It checks weekly discovery, runs the same deterministic report,
+and opens the dashboard when the core ranking and final validation succeed.
+Incomplete auxiliary SEC facts, financial snapshots or shadow comparison may still
+allow the dashboard to open with explicit warnings. Core failures block the handoff.
+The standalone `daily-report` command exits nonzero if any step fails, including
+those auxiliary steps. Keep using `daily-report` by itself
 when an AI or human will import qualitative research before opening the dashboard.
 An installation created with the guided setup can run the same `morning` workflow
 by double-clicking **Stock Research Assistant** on the desktop; no separate behavior
@@ -118,7 +126,7 @@ The first initialization of a version-10 database creates an adjacent
 but become nonqualifying legacy evidence because their complete contracts were not
 recorded and are not reconstructed after the fact.
 
-## Optional current-source research phase
+## Weekly universe review
 
 `morning` first checks whether weekly universe discovery is due, before the eight
 report steps. If due, confirmation of approval or rejection starts those steps once,
@@ -135,6 +143,8 @@ opens its dashboard after validation. Keep choices and manual edits are reviewed
 before activation, with a hard cap of 100 stocks. Candidate refreshes and retries
 are available from the review page. AI research still follows the separate phase
 below; the post-approval report does not claim that research has been imported.
+
+## Optional current-source research phase
 
 The deterministic phase writes `runtime/reports/research_template.json`. A person
 or AI research agent may complete it using current sources, then run:

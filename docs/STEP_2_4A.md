@@ -5,6 +5,9 @@ point-in-time financial snapshots without changing the production ranking model.
 The current calculation version is `sec-financials-v1.1.0`. Earlier snapshots keep
 their original version and remain immutable and readable.
 
+Shadow comparison is also implemented. Production promotion remains deferred under
+the [current roadmap decision](ROADMAP.md); these snapshots are not ranking inputs.
+
 ## Period construction
 
 - Annual observations require an SEC fiscal-period label of `FY` and a duration

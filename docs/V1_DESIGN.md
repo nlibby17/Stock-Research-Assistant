@@ -1,9 +1,10 @@
-# Version 1 Design and Roadmap
+# Architecture and Data Policy
 
 ## Decision summary
 
-V1 favors reliability, explainability, and low storage over breadth. It screens an
-explicit 50-name, liquid, U.S.-listed universe spanning all 11 GICS-style sectors.
+The application favors reliability, explainability, and low storage over breadth.
+Its default is an explicit 50-name, liquid, U.S.-listed universe spanning all 11
+GICS-style sectors. Local configuration and approved discovery proposals can change it.
 This is a curated research universe—not an index, market proxy, or claim to cover
 all U.S. opportunities. It is small enough for responsible use of an unofficial
 free source and broad enough to exercise cross-sector ranking. Personal installations
@@ -14,9 +15,10 @@ Daily adjusted/unadjusted prices and a small set of current fundamental summarie
 come from Yahoo Finance through the open-source `yfinance` client. The adapter is
 isolated so it can be replaced. SEC EDGAR supplies primary-source research and
 isolated structured financial snapshots/shadow comparisons; promotion into ranking
-inputs remains gated. SQLite is the only durable runtime store. React is the only
-read-only dashboard, served by a loopback-only Python adapter over stored runs. See `DASHBOARD_REACT.md` for current UI,
-packaging and launcher details.
+inputs remains gated. SQLite stores normalized caches and immutable analysis history.
+React is the only read-only dashboard, served by a loopback-only Python adapter over
+stored runs. See [the React guide](DASHBOARD_REACT.md) for current UI, packaging and
+launcher details.
 
 ## Source assessment (checked 2026-08-26)
 
@@ -60,7 +62,7 @@ user whose educational project receives higher limits. V1 does not request a key
 
 ### Twelve Data — optional/deferred
 
-The Basic plan currently advertises 8 API credits/minute and 800/day, resetting at
+At the assessment date, the Basic plan advertised 8 API credits/minute and 800/day, resetting at
 00:00 UTC. It is a credible keyed price-data alternative, but endpoint credit costs,
 exchange entitlements, and plan terms must be checked for the exact use. Adding it
 would improve provider redundancy; it is deferred until the user chooses to create
@@ -162,8 +164,8 @@ Deferred from ranking:
   recent dated sources and imports concise notes.
 - True point-in-time FCF/earnings growth and historical fundamentals: current Yahoo
   summaries are not safe for backtests. SEC facts, filing acceptance timestamps,
-  and period contexts are now stored, but Step 2.4 must derive and validate
-  comparable metrics before they become ranking inputs.
+  and period contexts are stored. Comparable-period calculations and shadow
+  comparison are implemented; production promotion and further review are deferred.
 - Valuation relative to a company's own history: requires retained point-in-time
   shares, earnings, and fundamentals; current-only multiples would create hindsight.
 
@@ -175,15 +177,14 @@ runtime/
   cache/sec/              transient SEC JSON request cache
   logs/stockrank.log      rotating log (2 MB x 3)
   reports/                latest/history Markdown and research JSON
+  universe/               local discovery proposals, decisions and workflow state
   tmp/                    removable intermediates
 ```
 
-Expected size for 50 symbols with warm, compressed SEC submissions and Company
-Facts caches is about 60–100 MB: normalized bars and cache, up to roughly 8 MB
-logs, and a few MB reports. Immutable
-daily ranking history is
-expected to add roughly 20–40 MB per year at this size. No articles or filings are
-archived. SEC JSON may exist temporarily to avoid repeat requests, but it is not
+Storage use varies with universe size, discovery screening, SEC fact volume,
+retained history and cache state. Use `stockrank storage-status` to inspect this
+installation rather than assuming a fixed size or annual growth rate. No articles
+or filing bodies are archived. SEC JSON may exist temporarily to avoid repeat requests, but it is not
 part of immutable history. Cleanup keeps compact run/results/research history,
 removes bars older than 550 days, expired cache summaries, reports older than 30
 days (except `latest.*`), and temp files older than one day. Cleanup previews by
@@ -191,7 +192,7 @@ default.
 
 ### Historical integrity contract
 
-Schema version 9 retains each distinct normalized SEC Company Fact observation by
+Since schema version 9, storage retains each distinct normalized SEC Company Fact observation by
 content fingerprint. A repeated identical response only advances the last-seen time;
 a changed value or context creates a new immutable observation. On upgrade, the
 previously stored current row becomes a `legacy_seed`, which is an honest starting
@@ -210,37 +211,19 @@ runs remain readable as `legacy_limited` evidence and are never silently backfil
 
 ## Roadmap
 
-The authoritative implementation order and acceptance gates are maintained in
-[`ROADMAP.md`](ROADMAP.md). Its approved 2026-09-05 active delivery plan supersedes
-the original broad sequence. Mandatory structural refactoring ended after S3.2.
-Two-stock/company views are delivered. Weekly universe proposals are the next
-proposed feature; SEC promotion remains deferred pending evidence and approval,
-without blocking independent product work. Selected historical features remain
-optional as needed. The broader stages below are a scope reference, not prerequisites
-for those current views; attribution, outcome tracking, and backtesting are deferred.
+The [current roadmap](ROADMAP.md) records the user's October 13, 2026 decision:
+the present application is the accepted stopping point, with documentation and
+screenshots as the final closeout. No feature development is queued afterward.
 
-The high-level stages are:
+Delivered capabilities include the local React dashboard and two-stock/company
+views, weekly universe proposals and explicit approval, SEC identity/filing/fact
+layers, financial snapshots and isolated provider comparisons, reproducibility
+manifests, and reliability/maintainability steps 1–6.
 
-1. **V1 foundation — complete:** provider/cache, normalized schema, metrics,
-   versioned scores, CLI, report, dashboard, research import, and tests.
-2. **Data hardening — in progress:** SEC identity, submissions, and Company Facts
-   and financial-period derivation are complete. Shadow comparison infrastructure
-   is implemented; its evidence/review gate remains open. Controlled model promotion
-   is deferred, and review-only dated universe proposals are planned.
-3. **Historical intelligence:** record-integrity checks, deterministic run
-   comparisons, evidence-based change attribution, prospective outcome tracking,
-   and historical views. This stage is independently useful without backtesting.
-4. **Optional point-in-time evaluation:** first make a post-Step-3 provider and data-
-   sufficiency decision. Freeze the current approved model/provider policy, approve
-   and validate a new version before evaluation, or skip directly to Step 5. If
-   evaluation proceeds, first consider a clearly labelled current-universe replay,
-   then survivorship-aware backtesting only when historical membership, delisting,
-   corporate-action, and price coverage are defensible.
-5. **Operational hardening and optional expansion:** backup/recovery, diagnostics,
-   optional user-authorized scheduling, and evidence-driven provider or deployment
-   decisions rather than mandatory paid integrations.
-
-No stage includes brokerage connectivity or automated trade execution.
+SEC promotion, richer historical views/attribution, backup/recovery improvements,
+further structural refactoring and backtesting remain deferred. If requested later,
+their evidence and approval gates still apply. No stage includes brokerage
+connectivity or automated trade execution.
 
 ### Step 2.1 status: SEC identity and connection foundation
 
@@ -259,8 +242,9 @@ Completed foundation:
   retries, stale fallback, malformed payloads, and health persistence.
 
 The identity cache is infrastructure, not evidence that a company is currently
-eligible for the investment universe. Security classification and proposed
-universe changes remain Step 2.5 work.
+eligible for the investment universe. The implemented
+[discovery workflow](UNIVERSE_DISCOVERY.md) performs separate listing, filing-scope
+and eligibility checks before proposing prospective universe changes.
 
 ### Step 2.2 status: filing and availability-date tracking
 
@@ -321,10 +305,10 @@ Completed calculation layer:
   production scoring.
 
 The calculation rules and validation result are in
-[`STEP_2_4A.md`](STEP_2_4A.md). Step 2.4B is the next gate; the current scoring model
-still reads Yahoo summary fundamentals exactly as before.
+[`STEP_2_4A.md`](STEP_2_4A.md). Step 2.4B comparison is also implemented; further
+review and promotion are deferred. The current model still reads Yahoo fundamentals.
 
-### Step 2.4B status: shadow comparison in progress
+### Step 2.4B status: comparison implemented; promotion review deferred
 
 The immutable comparison infrastructure, configurable tolerance matrix, CLI status,
 and dashboard breakdowns are implemented. Earlier three-date evidence predates the
@@ -337,20 +321,22 @@ stale, missing, or structurally incomparable. None are ranking inputs.
 
 ## Universe maintenance policy
 
-V1 remains manually curated and versioned; `config/universe_policy.toml` documents
-the default eligibility policy. Local validation enforces schema, sectors, weights,
-identifiers, and optional live price/SEC identity coverage, but full listing,
-security-type, liquidity, and corporate-action enforcement remains Step 2.5 work.
-This avoids pretending an unofficial quote endpoint is an authoritative security
-master. The planned bounded proposal workflow runs weekly when due during the
-user-started `morning` command and may join active exchange listings to SEC
-ticker/CIK data, apply security-type, history, liquidity, coverage,
-corporate-action, delisting, and sector-balance checks, then write a dated proposed
-universe with evidence for review. It never activates a proposal automatically.
-User-approved changes apply prospectively, and historical runs always retain their
-original member list and universe version.
+The default curated universe and `config/universe_policy.toml` define the starting
+scope. Local configuration validates identifiers, sectors and weights, with an
+optional live price/SEC identity check. It is separate from discovery screening.
 
-The initial workflow declares a supported security scope and flags or excludes
-unresolved identities and unsupported corporate actions. Broader foreign-filing
-normalization and comprehensive historical listing infrastructure are deferred.
-Discovery records its last successful run and requires no background scheduler.
+The implemented [universe discovery workflow](UNIVERSE_DISCOVERY.md) runs when due
+at the start of a user-launched `morning`, or immediately for an explicit preview.
+It joins listing and SEC identity evidence, restricts candidates to the supported
+security/filing scope, checks history, liquidity and coverage, then proposes Best
+overall and Diversified lists. Unsupported identities and corporate actions remain
+excluded or flagged. This is a bounded screen, not a comprehensive security master.
+
+Approval is explicit and prospective. Protected stocks, nominations and removals
+are reviewed before activation; historical runs retain their original membership
+and universe version. No proposal activates automatically. Successful weekly
+discovery is reused for seven elapsed days within its effective context; an
+immediate preview does not advance that interval. No background scheduler is used.
+
+Broader foreign-filing normalization and comprehensive historical listing
+infrastructure remain deferred.

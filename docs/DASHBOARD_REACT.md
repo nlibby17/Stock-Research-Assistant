@@ -1,92 +1,115 @@
-# Local React dashboard
+# React dashboard guide
 
-Current maintenance update, 2026-10-13: React is the only dashboard. The old
-Streamlit renderer, comparison module, theme, dependency and `--ui` selector have
-been removed. `setup-check` and server startup check the shipped HTML, JavaScript
-and CSS. The accepted React interface and report semantics are unchanged.
+Reviewed against application 0.6.0, commit `d458d56`, on October 13, 2026.
+React is the only dashboard. The interface ships with the Python application;
+normal installation and use require no Node.js or frontend build.
 
-Historical presentation migration, approved 2026-09-06. No scoring, providers, schema,
-production universe, SEC promotion or weekly-discovery behavior changes.
+## Open and navigate
 
-Latest presentation follow-up (user approved for commit/push): VS score, Coverage, and key-metric
-panels and Research score/chart panels reuse Market Overview's gold treatment.
-VS Coverage is expandable and initially collapsed. Sector borders are permanently
-highlighted without hover changes; Research info cards no longer highlight on hover.
-Home navigation cards have a permanent subtle gold tint and aligned icon/title
-positions. A shared crossed-swords SVG replaces the Stock Comparison navigation
-text icon in Home and the sidebar. Verified with 14 frontend tests, rebuilt assets,
-and browser checks of alignment, panels, and Coverage expansion.
-Review correction: both navigation locations share complete crossed-sword geometry
-with a clear blade overlap. Farewell motion is a further 40% faster than the
-previously accepted 1.5-speed texture, with direction and exit behavior unchanged;
-all 13 farewell tests pass. The user accepted these follow-up changes before authorizing commit/push.
+Use `stockrank dashboard` to open the latest saved report without fetching data or
+calculating a new report. Use the executable in the project's virtual environment:
 
-Presentation follow-up, 2026-09-06 (user reviewed and approved for commit/push): Home
-sector cards are compact rectangles with stationary hover highlighting. Navigation
-card icons and text are larger; corner arrows retain their size. Market Overview
-and the two Top Candidates panels share the Home title's gold border and background.
-Candidate bars progress from deep gold on the left to pale gold on the right,
-with the original gold at seventh position in a ten-stock chart. Research overview
-metrics reuse Home's status-card treatment with a stationary hover glow, and the
-rank/sector label is larger. VS and Advanced are unchanged.
-The Research factor chart uses a shorter plotting area and wider bars, retaining
-the 0–100 scale and existing tooltips. The shared page background adds faint gold,
-violet, and blue radial washes over a softer grid. The user accepted these
-refinements and the farewell visuals before authorizing this checkpoint.
+```powershell
+# Windows, from the project folder
+.\.venv\Scripts\stockrank.exe dashboard
+```
 
-The farewell mesh has denser detail and lateral parallax: upper rows move left,
-lower rows move right. The center line, message, colors, sizing, and exit controls
-retain their existing behavior. Verification: 14 frontend tests and 12 farewell
-tests pass; production assets rebuilt; desktop and narrow Home layouts inspected.
+```bash
+# macOS / Linux, from the project folder
+./.venv/bin/stockrank dashboard
+```
 
-## Run
+The browser opens automatically at `http://localhost:8765`. Keep the terminal open;
+closing a browser tab does not stop the server. Reload after generating a new
+report or importing research. A reload returns to Home.
 
-`stockrank dashboard` and the existing morning/double-click flow use React.
-Only run `morning` when new calculations/provider work are wanted; `dashboard`
-reads the latest stored report. Reload after a new report or research import.
-The CSV endpoint refuses to export a different latest run than the displayed one.
+Home cards and the left navigation switch between five views within the page.
+The navigation expands on hover or keyboard focus. Its three-line symbol is
+decorative. Short windows can scroll the navigation to reach every view.
 
-Normal use requires Python only. The server binds to `127.0.0.1`, validates Host
-and Origin, refuses cross-site reads, exposes only an explicit static-file list
-and two GET endpoints, and reads SQLite inside one read-only transaction. No
-telemetry, remote fonts/images, cloud host or UI write endpoints. Qualitative
-Markdown rejects raw HTML; only HTTP(S) source links are enabled. Local-only
-serving is not a security boundary against other processes on the same computer;
-do not expose this server through a proxy or tunnel.
+| View | What it shows |
+|---|---|
+| **Home** | Report date and status, navigation cards, sector leaders, market context, universe size and scoring model. A **Validation Alert** appears when the report has workflow warnings; expand it for details. |
+| **Top Candidates** | The highest eligible scores, candidate table, all-rankings CSV download, and changes from the previous compatible report or a reason no comparison is available. |
+| **Stock Comparison** | Two distinct top candidates, with **Score profile**, **Key metrics**, and **Research & sources** tabs. Coverage starts collapsed. |
+| **Research** | A numbered company selector and **Score overview**, **Research**, and **Filings & sources** tabs for that saved run. |
+| **Advanced** | Personalization instructions and current profile, plus expandable report evidence, data quality, source health and SEC diagnostics. |
 
-## Feature placement
+The Home **Scoring model** card opens a dialog explaining the overall formula and
+five expandable factor categories. Close, Escape or a backdrop click dismisses it.
+Research and Stock Comparison charts provide calculation/time-window tooltips;
+expand **Chart data** for values and fuller explanations. Large tables show at most
+25 rows per page, with Previous/Next controls. CSV includes all current rankings.
 
-| Existing content | React location |
-| --- | --- |
-| Hero, report/status badges, market table and sector leaders | Home |
-| Candidate table, score tooltips, overall score chart, all-rankings CSV | Top Candidates |
-| Compatible previous-report changes and comparison limitations | Top Candidates |
-| Two-stock selection, component scores/coverage, metrics, research/sources | Stock Comparison |
-| One company's overview, research and bounded SEC filings/sources | Research, numbered selector |
-| Personalization commands and current profile/universe | Advanced, open initially |
-| Run manifest, warnings, peer counts, freshness, provider health | Advanced disclosure |
-| Cutoff-bound financial snapshots and report-linked provider comparison | Advanced disclosure |
+## Read the evidence correctly
 
-Missing evidence remains unavailable, not zero or invented. Formula identities,
-stored eligibility rules, legacy limitations, source dates and report/current
-distinctions are retained. Chart data is available below each chart. Charts use
-SVG; the retired Altair-specific export/spec menu is not part of this interface.
+- Scores express relative standing within the saved universe. Coverage measures
+  available weighted inputs; missing values are never displayed as zero.
+- Research is populated only after a successful import for that report. The
+  desktop launcher creates a deterministic base report, not AI research.
+- SEC filings and financial snapshots are bounded by the saved report's cutoff.
+  Older reports lacking a defensible cutoff show an explicit limitation.
+- Report-linked provider comparisons and installation-current diagnostics are
+  distinct. SEC shadow values do not change production rankings.
+- Historical comparisons require complete, compatible calculation contracts,
+  membership and ordered market-data dates. There is no arbitrary older-run picker.
+- Sector leaders describe the selected universe, not whole-market sector rankings.
+  Source dates, warnings and unavailable values remain visible.
 
-Navigation changes the in-memory view, not the URL or browser document; only Home
-navigation returns to Home during the session. Reload starts at Home. Only the
-selected research company is mounted. The number menu contains real eligible
-report candidates (normally ten), never fabricated placeholders to fill ten slots.
-Reduced-motion preferences disable entry animations and pointer tilt. Navigation
-also expands on keyboard focus. The three-bar header is decorative, with no click
-action or hover highlight. The sidebar fits its items rather than stretching to
-the bottom of the window; short viewports allow scrolling to every navigation item.
+The dashboard is read-only. Advanced provides commands for changing preferences;
+universe approval happens in the separate [review workflow](UNIVERSE_DISCOVERY.md).
 
-Collapsed disclosures mount their contents only while open, including nested
-diagnostics. Closing a section releases its rendered tables and JSON; reopening
-starts its nested sections and table pages fresh. Shared data tables display at
-most 25 rows per page, with Previous/Next controls and the full record count.
-This avoids rendering all 500 stored comparison rows on entry to Advanced while
-keeping every record accessible. The all-rankings CSV remains complete.
+## Current screenshots
+
+Captured from the actual React application on October 13, 2026, using an existing
+Yahoo-backed report dated **October 9, 2026**. These illustrate the interface, not
+current prices, investment recommendations or a newly generated report. No demo
+data, fabricated research or edited values were used. The Home validation alert
+and the unavailable historical-comparison explanation are retained.
+
+### Home
+
+![React Home with dated report status, navigation, sector leaders and market overview](images/dashboard-overview.jpg)
+
+### Top Candidates
+
+![React Top Candidates with relative scores, coverage, CSV export and comparison limitation](images/dashboard-top-candidates.jpg)
+
+### Stock Comparison
+
+![React Stock Comparison showing two distinct candidates and their factor scores](images/dashboard-stock-comparison.jpg)
+
+### Research
+
+![React Research score overview with numbered company selection, factor chart and coverage](images/dashboard-research-summary.jpg)
+
+This capture shows the **Score overview** tab; it does not imply that qualitative
+research has been imported.
+
+### Advanced
+
+![React Advanced with local personalization commands and collapsed diagnostics](images/dashboard-advanced.jpg)
+
+The captures contain no SEC contact identity, credentials, personal filesystem
+paths or raw configuration exports. Diagnostic disclosures remain available in
+the application; they are not expanded in these overview images.
+
+## Local server and packaging
+
+`dashboard_server.py` serves bundled files from `web_assets/` and the read-only
+report/CSV endpoints. It binds to `127.0.0.1`, validates Host and Origin, rejects
+cross-site reads, and serves only an explicit asset allowlist. `dashboard_data.py`
+reads a consistent SQLite snapshot and exposes an allowlisted public response.
+Raw settings and private filesystem paths are not exported.
+
+The CSV endpoint rejects a request if the latest report differs from the one shown.
+Qualitative Markdown rejects raw HTML and remote images; source links allow HTTP(S).
+No cloud host, telemetry or remote fonts are required. Do not expose the server
+through a public proxy or tunnel; other local processes are not isolated from it.
+
+`setup-check` and server startup verify `index.html`, `app.js` and `app.css`.
+Missing assets require a complete installation or a frontend rebuild. The retired
+Streamlit renderer and `--ui` option are no longer available.
 
 ## Frontend development
 
@@ -99,123 +122,37 @@ npm run format:check
 npm run build
 ```
 
-On PowerShell use `npm.cmd` if script execution policy blocks `npm.ps1`.
-Source is in `frontend/src`; locked dependencies and the build script create
-`src/stockrank/web_assets/`. Commit rebuilt assets with source after approval.
-The bundle is included as Python package data; consumers never need npm.
-CI verifies views and checks that rebuilding produces no bundle changes.
+On PowerShell use `npm.cmd` if execution policy blocks `npm.ps1`. Source lives in
+`frontend/src`; locked dependencies and `build.mjs` generate `src/stockrank/web_assets/`.
+Include rebuilt assets with approved source changes. CI checks that a rebuild
+matches the committed bundle. Python wheels include the bundle and license notices.
 
-## Terminal farewell
+Charts animate when entering view; reduced-motion preferences disable entry
+animation and pointer tilt. Collapsed disclosures mount their contents only while
+open. Reopening starts nested sections and table pages fresh.
 
-While the dashboard runs, the welcome banner's small stock line draws left to
-right in indexed green (ANSI palette color 41, compatible with older Apple Terminal),
-revealing one column every 0.5 seconds and looping.
-Its axes and message stay stationary. Ctrl+C stops the dashboard and proceeds to
-the existing farewell. Redirected output, CI, unsupported terminals, and small
-windows use static welcome art; shrinking below 65 columns or eight rows stops
-repainting to protect the terminal history.
+## Terminal lifecycle
 
-Animation revision approved for commit/push, 2026-09-06: dense projected clusters of letters, numbers,
-and symbols move right on the upper plane and left on the lower plane. Texture
-projects through the horizontal center of the message line without static rails
-or crossbars, and moves 50% faster than the initial dense revision.
-The center line and exit controls are preserved. Focused tests cover density,
-absence of static rails, reversed movement,
-resizing, and exit behavior.
+The welcome banner draws a small green line while the dashboard runs. Ctrl+C
+(Control+C on Mac) stops the server and starts the blue-to-white horizon farewell.
+At **Close terminal? [y/n]**, Y + Enter exits; N + Enter continues. Ctrl+C also exits
+the farewell. Unsupported terminals use static art; redirected/CI output does not
+wait for input. Terminal modes and cursor visibility are restored on exit.
 
-The upper/lower perspective-plane algorithm is independently authored, with no copied code,
-frames or artwork from the referenced animation. `thank you goodbye` is stationary
-at the horizon. A cobalt-blue to icy-white gradient colors both halves. Dimensions are read every frame, reserving rows for
-`Close terminal? [y/n]`. Y + Enter exits; N + Enter continues indefinitely;
-The typed Y/N is rendered in bright white beside the visible cursor. Ctrl+C is an
-escape. Console modes and cursor visibility are restored on exit.
-Animation uses an alternate screen so earlier report messages remain recoverable.
+Manual commands return to their shell. The Windows desktop launcher uses its own
+Python console. On macOS, Y + Enter can close the launcher's own single-tab Apple
+Terminal window; macOS may request permission to control Terminal. Other windows
+and multi-tab windows are preserved. Closing a window with its X button cannot
+play the farewell afterward. Preview the animation with `python -m stockrank.farewell`.
 
-TTY/ANSI-capable Windows and POSIX terminals animate. Unsupported consoles use a
-compact static horizon; redirected/CI output never waits for input. The launcher
-no longer adds a second success pause. Y exits the launcher process; it cannot
-force-close an unrelated parent shell. The macOS desktop launcher sets a per-process
-marker; only an explicit Y + Enter schedules closing its matching single-tab Apple
-Terminal window. The helper matches the terminal device and waits until the launcher
-exits before closing, leaving unrelated windows and multi-tab windows alone. macOS
-may request permission to control Terminal; automatic closing requires that permission.
-Manual CLI sessions and Ctrl+C exits from the farewell do not request window closure.
-Closing a window with its X button cannot reliably
-play a farewell after the window is gone; use Ctrl+C to stop the dashboard first.
+## Verification
 
-On Windows, the compatibility `.cmd` wrapper starts `stockrank.desktop_launcher`
-in its own Python console and immediately exits. There is no waiting batch
-interpreter to issue an additional `Terminate batch job (Y/N)?` after Ctrl+C.
-The Python console runs the same `morning` command and pauses only on failures.
-Relaunch through the desktop shortcut to use this fix; a previously open launcher
-still has its old process structure.
+For `d458d56`, 624 Python tests passed with four platform-specific skips, and all
+20 frontend tests passed. A clean installation without Streamlit or PyArrow passed
+the same Python suite. Rebuilt React assets were identical; the wheel contained
+the required assets and SEC modules. All 15 [hosted CI jobs](https://github.com/nlibby17/Stock-Research-Assistant/actions/runs/38354450737)
+passed. CI's compatibility profile runs on current macOS, not physical macOS 11.
 
-Preview without generating a report: `python -m stockrank.farewell`.
-
-## Verification / acceptance
-
-- Python tests cover read-only/no-run behavior, missing values, legacy cutoffs,
-  snapshot build time and membership, shadow linkage, local-only HTTP access,
-  file allowlisting, CSV consistency and private error text.
-- Terminal tests cover frame dimensions, static text, resize, N continuation,
-  Y confirmation, cleanup and noninteractive fallback. Windows pseudo-terminal
-  execution also confirmed animation and N/Y handling.
-- Frontend tests compile/render actual views with isolated fixtures; no fixtures
-  are shipped as dashboard data. Tests cover formatting, distinct pair selection,
-  missing values, escaped content, default research selection and vertical bars.
-- Browser checks use existing stored reports, not new daily runs. User visual
-  acceptance is complete. On 2026-09-06 the user also reported flawless operation
-  on their Mac after updating. This is user-reported manual verification, not an
-  agent-run test or a claim about every macOS version. Streamlit was still optional
-  at that historical checkpoint; it was retired in the October 13 maintenance work.
-- Hosted [CI run 34012607584](https://github.com/nlibby17/Stock-Research-Assistant/actions/runs/34012607584)
-  completed successfully for `9acd197`; the workflow covers Python on Windows,
-  macOS and Ubuntu, plus frontend tests, formatting and bundle consistency.
-
-Local checkpoint after finishing touches: 345 Python tests passed, four platform-specific
-tests skipped; 11 frontend tests and production build passed. Browser checks confirmed all five
-views, distinct pair selection, numbered research/filings, current diagnostics,
-square cards at a narrow viewport, and chart replay after leaving/re-entering view.
-An isolated wheel build confirmed all five frontend assets/notices are packaged.
-
-Finishing review: Home orders navigation cards, sector leaders, market table,
-gold-accented status cards, then Advanced. Top Candidates starts with its graph;
-the `Candidate Score Comparison` heading now names the table below it. The redundant
-eligibility banner is removed, not the eligibility rules. Graph details use explicit
-pointer/focus tooltips. Research has larger title-case tier badges and reactive
-number cards; Stock Comparison adds tilt only. A Windows pseudo-terminal test
-confirmed the typed Y is visible and one Enter exits the farewell.
-
-User visually accepted the dashboard and explicitly authorized this checkpoint's
-commit and push on 2026-09-06. It is committed and pushed as `9acd197`
-(`Migrate dashboard to React and refine animated launch experience`). The later
-Mac confirmation closes the remaining manual platform check for this checkpoint.
-No production input change is included. See `ROADMAP.md` for the next work item;
-this migration does not authorize future feature implementation.
-
-
-## Universe review and scoring explanations (2026-09-13)
-
-Universe review lists and confirmation membership are alphabetical by ticker;
-ranking and selection order are unchanged. Manual nominations verify only new
-tickers when the proposal has a compatible verification snapshot no more than
-one hour old on the same local date. Shared listing/identity checks and the SPY
-calendar reference still run for new nominations. Scores are recomputed locally
-against the combined pool. Expired/legacy evidence, changed settings, or a changed
-market date require full verification; repeated edits do not extend snapshot age.
-
-The Home-only **Validation Alert** starts collapsed and retains the SEC diagnostic
-details when expanded. Research and VS factor charts, their Chart Data tables,
-and factor table tooltips explain the saved scoring weights, constituent formulas,
-and time windows. Hover, focus, or expand Home's Scoring model card for all five
-categories. Top Candidates chart tooltips retain their existing content.
-Yahoo growth and ratio fields do not supply exact reporting/comparison dates, so
-help text states that limitation instead of inventing a period. Momentum and risk
-price windows use the exact trading-session counts implemented by the pipeline.
-
-
-2026-09-14 follow-up: Home's Scoring model card now opens a centered native dialog,
-with the overall formula and five expandable category sections. Close, Escape,
-and backdrop clicks dismiss it; focus returns to the card. Research and VS graph
-tooltips use compact calculation/timeframe summaries. Full formulas remain in
-Chart Data and the scoring panel. Top Candidates tooltips are unchanged.
+This documentation refresh inspected all five views and captured the screenshots
+above without running a new daily report or changing the saved universe. Earlier
+presentation decisions remain in Git history and the [decision ledger](REFACTORING_REVIEW.md).

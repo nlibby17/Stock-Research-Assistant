@@ -4,6 +4,10 @@ Read `README.md`, `docs/DAILY_WORKFLOW.md`, and `docs/ROADMAP.md` before operati
 changing this project. Follow the roadmap sequence and acceptance gates. Preserve
 unrelated user changes and inspect `git status` before editing.
 
+The current application is the user-approved stopping point. Further feature work
+is deferred; historical roadmap entries do not authorize new implementation.
+The documentation closeout is complete; wait for an explicit new development request.
+
 For dashboard or launcher work, also read `docs/DASHBOARD_REACT.md`. React is the
 only local dashboard; the Streamlit fallback has been removed. Current delivery status
 and the next-session starting point are at the top of `docs/ROADMAP.md`.

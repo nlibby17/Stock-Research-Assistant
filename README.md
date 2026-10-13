@@ -7,6 +7,9 @@ A local, research-only application that reviews a customizable universe of U.S.
 stocks, ranks them with an interpretable scoring model, and presents the results in
 a browser dashboard. It does not connect to a broker or place trades.
 
+The current local application is accepted as the project's stopping point.
+Further feature work is deferred; see the [current status](docs/ROADMAP.md).
+
 ## What it does
 
 - Ranks an explicit stock universe using growth, valuation, quality, momentum, and
@@ -112,6 +115,22 @@ launcher process. On macOS, the desktop launcher also closes its own single-tab
 Apple Terminal window after Y + Enter; manually started commands return to their shell.
 See [frontend development and verification](docs/DASHBOARD_REACT.md).
 
+### Current interface
+
+Captured from the React application on October 13, 2026, using a saved report dated
+**October 9, 2026**. These are interface examples, not current market prices. The
+report's validation warning remains visible.
+
+![React Home with report status, navigation cards, sector leaders and market overview](docs/images/dashboard-overview.jpg)
+
+Research keeps the deterministic score overview separate from imported qualitative
+research and filing evidence:
+
+![React Research score overview with company selection, factor scores and coverage](docs/images/dashboard-research-summary.jpg)
+
+See [all five dashboard views](docs/DASHBOARD_REACT.md#current-screenshots), including
+Top Candidates, Stock Comparison and Advanced.
+
 ## Personalization
 
 The default installation uses a balanced profile and an explicit 50-stock universe.
@@ -121,8 +140,7 @@ remain local and are ignored by Git, so different computers can use different
 settings safely.
 
 Weekly universe discovery runs when due at the start of `morning`, before the
-eight report steps. It
-creates proposals for **Best overall** (highest scores in the screened pool) and
+eight report steps. It creates proposals for **Best overall** (highest scores in the screened pool) and
 **Diversified** (sector-balanced company counts). Membership changes require
 explicit approval. Run `stockrank universe-preview --open` to compare both profiles
 immediately without changing membership or the weekly schedule. See
@@ -155,9 +173,20 @@ to Codex.
 - [SETUP.md](SETUP.md) — install, run, personalize, update, and troubleshoot.
 - [Daily workflow](docs/DAILY_WORKFLOW.md) — deterministic report and optional
   qualitative research process.
-- [Roadmap](docs/ROADMAP.md) — current progress, acceptance gates, and future work.
-- [V1 design](docs/V1_DESIGN.md) — architecture, calculations, sources, storage,
+- [React dashboard](docs/DASHBOARD_REACT.md) — current screenshots, navigation,
+  evidence labels, frontend development, and launcher behavior.
+- [Universe discovery](docs/UNIVERSE_DISCOVERY.md) — weekly proposals, review,
+  protected stocks, approval, and prospective membership changes.
+- [Roadmap](docs/ROADMAP.md) — accepted scope, documentation closeout, and deferred ideas.
+- [Architecture and data policy](docs/V1_DESIGN.md) — calculations, sources, storage,
   limitations, and policy details.
+- [CLI command ownership](docs/CLI_ARCHITECTURE.md) and
+  [SEC adapter ownership](docs/SEC_ADAPTER.md) — where commands and provider behavior live.
+- [Scoring input contract](docs/SCORING_INPUT_CONTRACT.md) and
+  [fundamentals fetching](docs/FUNDAMENTAL_FETCHING.md) — calculation boundaries and cache behavior.
+- [Data hardening](docs/STEP_2.md), [SEC calculations](docs/STEP_2_4A.md), and
+  [shadow comparison](docs/STEP_2_4B.md) — implemented evidence layers and deferred promotion gates.
+- [Dependency locks](requirements/README.md) — reproducible installation and platform profiles.
 - [Refactoring review](docs/REFACTORING_REVIEW.md) — approved code-structure review
   and implementation ledger.
 

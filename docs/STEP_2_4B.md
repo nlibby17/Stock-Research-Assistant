@@ -1,12 +1,13 @@
 # Step 2.4B — SEC/Yahoo Shadow Provider Comparison
 
-Step 2.4B's comparison infrastructure is implemented; its evidence/review gate
-remains open. Promotion requires three qualifying distinct underlying market-data
+Step 2.4B's comparison infrastructure is implemented. Further evidence review and
+production promotion are deferred under the October 13, 2026 scope decision in
+[the roadmap](ROADMAP.md); they are not requirements for the accepted application.
+If promotion is resumed, it requires three qualifying distinct underlying market-data
 dates. Progress is installation-specific: check `stockrank provider-shadow-status`
 rather than assuming a fixed count. Earlier evidence predating the schema-11
 formula-contract gate remains readable but does not qualify. Production inputs
-remain unchanged; this gate does not block independent dashboard or universe-proposal
-work under the active plan in `ROADMAP.md`.
+remain unchanged. The shadow comparison still runs as part of the existing daily workflow.
 
 ## Purpose and isolation
 
@@ -95,7 +96,7 @@ The dashboard reports classifications by metric and sector and lists every mater
 company-level discrepancy with both values, relative difference, SEC period end,
 and alignment note.
 
-## Remaining acceptance work
+## Requirements if promotion review resumes
 
 1. Inspect the installation's current qualifying distinct-date count and contracts.
 2. Accumulate any missing dates through normal user-started daily workflows until
