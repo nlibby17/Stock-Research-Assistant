@@ -16,6 +16,7 @@ CALCULATION_CONTRACT_VERSION = "ranking-calculations-v1"
 REPRODUCIBILITY_STATUS = "recorded"
 CALCULATION_IMPLEMENTATION_FILES = (
     "freshness.py",
+    "fundamentals.py",
     "metrics.py",
     "pipeline.py",
     "price_integrity.py",

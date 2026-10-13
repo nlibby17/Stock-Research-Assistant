@@ -86,6 +86,12 @@ shown separately, and a favorable label is withheld below the configured overall
 coverage gate. All labels describe relative standing within the selected universe,
 not an absolute judgment about the company or investment.
 Use `--force` only when an intentional live refresh should bypass fresh caches.
+Yahoo fundamental cache misses are refreshed with at most three concurrent calls
+when the supported curl backend is active. Other backends remain serial. Cache
+decisions, database writes and warning/result ordering stay on the calling thread;
+the terminal shows refresh progress. Cancellation drains active calls before exit.
+See [fundamentals fetching and measurements](FUNDAMENTAL_FETCHING.md). This change
+does not parallelize SEC requests or universe-discovery screening.
 Each step also reports its wall-clock elapsed time, followed by the total deterministic
 workflow time before `morning` launches the dashboard. Dashboard viewing time is not
 included because the local server intentionally runs until the user stops it.

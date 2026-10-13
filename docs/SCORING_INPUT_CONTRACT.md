@@ -36,8 +36,8 @@ python -m mypy
 python -m pytest tests/test_scoring_input_types.py
 ```
 
-The default mypy targets are `scoring_inputs.py`, `scoring.py`, `pipeline.py` and
-`universe_sources.py`. Imported project signatures are analyzed with
+The default mypy targets are `scoring_inputs.py`, `scoring.py`, `pipeline.py`,
+`fundamentals.py` and `universe_sources.py`. Imported project signatures are analyzed with
 `follow_imports = "silent"`; unrelated modules are not new diagnostic targets and
 are not replaced with unchecked imports. This is not a repository-wide typing
 campaign. External provider payloads keep their existing dynamic interfaces.

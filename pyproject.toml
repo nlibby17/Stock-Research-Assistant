@@ -46,6 +46,7 @@ files = [
   "src/stockrank/scoring_inputs.py",
   "src/stockrank/scoring.py",
   "src/stockrank/pipeline.py",
+  "src/stockrank/fundamentals.py",
   "src/stockrank/universe_sources.py",
 ]
 # Analyze imported signatures, but report errors only in this bounded workstream.
@@ -57,5 +58,5 @@ warn_redundant_casts = true
 disallow_any_unimported = true
 
 [[tool.mypy.overrides]]
-module = ["stockrank.scoring_inputs", "stockrank.scoring", "stockrank.pipeline"]
+module = ["stockrank.scoring_inputs", "stockrank.scoring", "stockrank.pipeline", "stockrank.fundamentals"]
 disallow_any_generics = true

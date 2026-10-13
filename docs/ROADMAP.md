@@ -105,6 +105,28 @@ integrity and all 18 supported wheel-target checks passed. Existing package pins
 are unchanged; only type-checking tools and their dependencies were added. Hosted
 CI and native Mac execution have not run for this uncommitted change.
 
+**Step 4 release update — 2026-10-13:** The user subsequently authorized commit
+and push. Released as `f606b25`; all 15 hosted CI jobs passed in
+[run 38345741034](https://github.com/nlibby17/Stock-Research-Assistant/actions/runs/38345741034).
+This includes the compatibility dependency profile on current macOS, not execution
+on a physical macOS 11 machine.
+
+**Step 5 implementation update — 2026-10-13:** The user authorized measurement
+and bounded concurrent fundamentals fetching, with no commit/push until separately
+requested. The report pipeline now refreshes Yahoo cache misses with at most three
+workers on the supported curl backend; other providers/backends stay serial.
+Application database access, cache/fallback decisions, merges and progress remain
+on the calling thread. Ordered warnings, freshness, retries, cancellation and
+scoring semantics are preserved. Universe-discovery screening remains serial.
+Three-repeat 50/100-stock fixture builds were about 40% faster cold with identical
+rankings; a live 12-stock sample fell from 2.70s to 1.33s with no warnings or value
+differences apart from timestamps. Warm caches showed no concurrency benefit.
+See [implementation, measurement limits and reproduction](FUNDAMENTAL_FETCHING.md).
+Step 6 (CLI modules) remains next; the broad docs/screenshots refresh follows it.
+Local verification: 554 Python tests passed, four platform-specific tests skipped;
+the five-module mypy check, repository lint and lock-integrity check passed.
+The change is uncommitted; hosted CI has not run for step 5.
+
 | Suggested order | User item | Verified finding and proposed scope | Acceptance gate for future implementation |
 |---|---|---|---|
 | 1 | #2 Windows installer failures | `scripts/setup.ps1` invokes pip without checking its native exit code. Check Python probing, virtual-environment creation, pip installation, and setup validation at their boundaries. | Simulated failures stop with a useful error and nonzero exit; no success message or launcher creation after failure. Successful setup and rerunning setup remain supported. |
@@ -123,7 +145,7 @@ rewrite now.
 The CLI requirement supersedes earlier advice that treated extraction as conditional
 on another maintenance problem. The implementation method remains deliberate and
 behavior-preserving; the earlier campaign closure does not cancel this newly required
-work. Step 4 is authorized as recorded above; implementation of workstreams 5–6
+work. Steps 4–5 are authorized as recorded above; implementation of workstream 6
 remains paused until requested.
 
 Dependency order: provider tests precede concurrency; define Python/lock support

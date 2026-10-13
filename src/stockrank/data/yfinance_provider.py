@@ -35,6 +35,18 @@ class YFinanceProvider(MarketDataProvider):
             ) from error
         return yf
 
+    def supports_concurrent_fundamentals(self) -> bool:
+        """Use concurrency only with the pinned client's thread-safe curl backend.
+
+        yfinance can fall back to a shared requests.Session when curl is disabled
+        or unavailable. Unknown/changed backends keep the serial path.
+        """
+        try:
+            backend = getattr(self._module(), "_http", None)
+        except Exception:  # noqa: BLE001 - capability probing must not bypass cache fallback.
+            return False
+        return getattr(backend, "HAS_CURL_CFFI", False) is True
+
     def fetch_prices(
         self, securities: list[Security], start: date, end: date
     ) -> tuple[dict[str, list[PriceBar]], list[str]]:

@@ -13,8 +13,9 @@ from typing import Any
 from stockrank.config import Settings
 from stockrank.data import DemoProvider, MarketDataProvider, YFinanceProvider
 from stockrank.freshness import PriceFreshness, assess_price_bars
+from stockrank.fundamentals import refresh_fundamentals
 from stockrank.metrics import apply_sector_conventions, calculate_metrics
-from stockrank.models import AnalysisRun, FundamentalSnapshot, PriceBar, Security
+from stockrank.models import AnalysisRun, PriceBar, Security
 from stockrank.price_integrity import assess_price_series, build_reference_sessions
 from stockrank.reporting import write_report_bundle
 from stockrank.reproducibility import REPRODUCIBILITY_STATUS, build_run_manifest
@@ -22,6 +23,8 @@ from stockrank.scoring import metric_peer_counts, score_universe
 from stockrank.scoring_inputs import ScoringInput
 from stockrank.storage import SCHEMA_VERSION, Storage
 from stockrank.summaries import sector_momentum_leaders
+
+FUNDAMENTAL_FETCH_WORKERS = 3
 
 MARKET_PROXIES = (
     Security("SPY", "S&P 500 ETF", "Broad market"),
@@ -209,84 +212,24 @@ def run_analysis(
             storage.set_cache_status(cache_key, provider.name, 0, "error", str(error))
             logger.exception("Price refresh failed")
 
-    fundamentals: dict[str, FundamentalSnapshot] = {}
-    fundamental_notes: dict[str, list[str]] = {}
-    fundamental_lineage: dict[str, dict[str, Any]] = {}
-    fundamental_ttl = float(settings.raw["provider"]["fundamental_cache_ttl_hours"])
+    fundamental_refresh = refresh_fundamentals(
+        settings,
+        storage,
+        provider,
+        now=started_at,
+        force=force,
+        workers=(
+            FUNDAMENTAL_FETCH_WORKERS
+            if isinstance(provider, YFinanceProvider) and provider.supports_concurrent_fundamentals()
+            else 1
+        ),
+        progress=lambda message: print(message, flush=True),
+    )
+    fundamentals = fundamental_refresh.snapshots
+    fundamental_notes = fundamental_refresh.notes
+    fundamental_lineage = fundamental_refresh.lineage
+    warnings.extend(fundamental_refresh.warnings)
     maximum_fundamental_age = float(settings.raw["provider"]["maximum_stale_fundamental_hours"])
-    for security in settings.universe:
-        cached = (
-            None
-            if force
-            else storage.get_fundamental(security.ticker, provider.name, fresh_only=True)
-        )
-        if cached:
-            age_hours = max(
-                0.0,
-                (started_at - cached.fetched_at.astimezone(UTC)).total_seconds() / 3600,
-            )
-            if age_hours <= maximum_fundamental_age:
-                fundamentals[security.ticker] = cached
-                fundamental_lineage[security.ticker] = {
-                    "status": "fresh_cache",
-                    "source": cached.source,
-                    "fetched_at": cached.fetched_at.isoformat(),
-                    "age_hours": round(age_hours, 3),
-                }
-                continue
-        try:
-            snapshot, fundamental_warnings = provider.fetch_fundamental(security)
-        except Exception as error:  # noqa: BLE001 - preserve per-ticker cache fallback.
-            snapshot = None
-            fundamental_warnings = [f"{security.ticker}: fundamental refresh failed ({error})"]
-        warnings.extend(fundamental_warnings)
-        if snapshot:
-            storage.put_fundamental(snapshot, fundamental_ttl)
-            fundamentals[security.ticker] = snapshot
-            fundamental_lineage[security.ticker] = {
-                "status": "refreshed",
-                "source": snapshot.source,
-                "fetched_at": snapshot.fetched_at.isoformat(),
-                "age_hours": 0.0,
-            }
-        else:
-            stale = storage.get_fundamental(security.ticker, provider.name, fresh_only=False)
-            if stale:
-                age_hours = max(
-                    0.0,
-                    (started_at - stale.fetched_at.astimezone(UTC)).total_seconds() / 3600,
-                )
-                if age_hours <= maximum_fundamental_age:
-                    fundamentals[security.ticker] = stale
-                    note = (
-                        f"Using stale fundamentals fetched {stale.fetched_at.isoformat()} "
-                        f"({age_hours:.1f} hours old)"
-                    )
-                    fundamental_notes.setdefault(security.ticker, []).append(note)
-                    warnings.append(f"{security.ticker}: {note.lower()}")
-                    status = "stale_fallback"
-                else:
-                    note = (
-                        f"Rejected fundamentals fetched {stale.fetched_at.isoformat()} because "
-                        f"they are {age_hours:.1f} hours old, above the "
-                        f"{maximum_fundamental_age:g}-hour limit"
-                    )
-                    fundamental_notes.setdefault(security.ticker, []).append(note)
-                    warnings.append(f"{security.ticker}: {note.lower()}")
-                    status = "rejected_stale"
-                fundamental_lineage[security.ticker] = {
-                    "status": status,
-                    "source": stale.source,
-                    "fetched_at": stale.fetched_at.isoformat(),
-                    "age_hours": round(age_hours, 3),
-                }
-            else:
-                fundamental_lineage[security.ticker] = {
-                    "status": "unavailable",
-                    "source": provider.name,
-                    "fetched_at": None,
-                    "age_hours": None,
-                }
 
     price_freshness = {
         security.ticker: _price_freshness(
